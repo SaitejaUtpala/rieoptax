@@ -1,1 +1,1 @@
-Riemannain Optimization on JAX
+Riemannain Optimization using JAX
