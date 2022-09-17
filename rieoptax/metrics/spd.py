@@ -2,6 +2,25 @@ from base import RiemannianMetric
 from jax import numpy as jnp
 
 
+class SPDMetric(RiemannianMetric):
+    
+    def sqrt_neg_sqrt(self, spd_matrix):
+        eigval, eigvec = jnp.linalg.eigh(spd_matrix[None])
+        pow_eigval = jnp.stack([jnp.power(eigval, 0.5), jnp.power(eigval, -0.5)])
+        result = (pow_eigval * eigvec) @  eigvec.swapaxes(1,2)
+        return result
+    
+    @partial(jit, static_argnums=(0,))
+    @partial(vmap, in_axes=(None, 0, None))
+    def exp(self, tangent_vec, base_point):
+        powers = self.sqrt_neg_sqrt(base_point)
+        eigval, eigvec = jnp.linalg.eigh(powers[1] @ tangent_vec @ powers[1])
+        middle_exp = (jnp.exp(eigval).reshape(1,-1) * eigvec)@ eigvec.T
+        exp = powers[0] @ middle_exp @ powers[0]
+        return exp
+
+        
+
 @jax.tree_util.register_pytree_node_class
 class SPDMetric(RiemannianMetric):
     
