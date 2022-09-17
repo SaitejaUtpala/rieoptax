@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import partial
 
-v2 = partial(vmap, in_axes=(0, 0))
-v3 = partial(vmap, in_axes=(0, 0, 0))
 from jax import jit, vmap
 
 

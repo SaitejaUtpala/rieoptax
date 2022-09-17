@@ -1,6 +1,7 @@
 from base import RiemannianMetric
 from jax import numpy as jnp
 
+
 class SPDMetric(RiemannianMetric):    
     def sqrt_neg_sqrt(self, spd_matrix):
         eigval, eigvec = jnp.linalg.eigh(spd_matrix[None])
