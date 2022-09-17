@@ -10,12 +10,18 @@ class SPDMetric(RiemannianMetric):
         return result
 
 class SPDAffineInvariant(RiemannianMetric):
-    
     def exp(self, tangent_vec, base_point):
         powers = self.sqrt_neg_sqrt(base_point)
         eigval, eigvec = jnp.linalg.eigh(powers[1] @ tangent_vec @ powers[1])
         middle_exp = (jnp.exp(eigval).reshape(1,-1) * eigvec)@ eigvec.T
         exp = powers[0] @ middle_exp @ powers[0]
+        return exp
+    
+    def log(self, point, base_point ):
+        powers = self.sqrt_neg_sqrt(base_point)
+        eigval, eigvec = jnp.linalg.eigh(powers[1] @ point @ powers[1])
+        middle_log = (jnp.log(eigval).reshape(1,-1) * eigvec)@ eigvec.T
+        exp = powers[0] @ middle_log @ powers[0]
         return exp
 
 
