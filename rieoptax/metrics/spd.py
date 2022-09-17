@@ -1,10 +1,15 @@
-import jax
 from base import RiemannianMetric
+from jax import numpy as jnp
 
 
 @jax.tree_util.register_pytree_node_class
 class SPDMetric(RiemannianMetric):
-    pass 
+    
+    def sqrt_neg_sqrt(spd_matrix):
+        eigval, eigvec = jnp.linalg.eigh(spd_matrix[None])
+        pow_eigval = jnp.stack([jnp.power(eigval, 0.5), jnp.power(eigval, -0.5)])
+        result = (pow_eigval * eigvec) @  eigvec.swapaxes(1,2)
+        return result
 
 
 
@@ -20,7 +25,14 @@ class AffineInvariant(SPDMetric):
     def _dist(self, point_a, point_b):
 
     def _exp(self, tangent_vec, base_point):
-        pass 
+        powers = sqrt_neg_sqrt(base_point)
+        eigval, eigvec = jnp.linalg.eigh(powers[1] @ tangent_vec @ powers[1])
+        middle_exp = (jnp.exp(eigval).reshape(1,-1) * eigvec)@ eigvec.T
+        exp = powers[0] @ middle_exp @ powers[0]
+        return exp 
+        
+    def exp(tangent_vec, base_point):
+    
 
     def _log(self, point, base_point):
         pass 
