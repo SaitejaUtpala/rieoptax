@@ -2,12 +2,13 @@ from base import RiemannianMetric
 from jax import numpy as jnp
 
 
-class SPDMetric(RiemannianMetric):    
+class SPDMetric(RiemannianMetric):  
     def sqrt_neg_sqrt(self, spd_matrix):
         eigval, eigvec = jnp.linalg.eigh(spd_matrix[None])
         pow_eigval = jnp.stack([jnp.power(eigval, 0.5), jnp.power(eigval, -0.5)])
         result = (pow_eigval * eigvec) @  eigvec.swapaxes(1,2)
         return result
+    
 
 class SPDAffineInvariant(RiemannianMetric):
     def exp(self, tangent_vec, base_point):
@@ -23,6 +24,14 @@ class SPDAffineInvariant(RiemannianMetric):
         middle_log = (jnp.log(eigval).reshape(1,-1) * eigvec)@ eigvec.T
         exp = powers[0] @ middle_log @ powers[0]
         return exp
+
+    def dist(point_a, point_b):
+        eigval =  jnp.linalg.eigvals(jnp.linalg.inv(point_b) @ point_a)
+        dist = jnp.linalg.norm(jnp.log(eigval))    
+        return dist
+
+
+
 
 
 
