@@ -76,7 +76,6 @@ class LorentzHyperboloid(Hyperboloic):
     def __init__(self,m, curvature):
         self.m = m 
         self.curv = curv
-        
     
     def lorentz_inner(self, point_a, point_b):
         rlip = jnp.inner(tangnet_vec_a, tangent_vec_b) -2 * tangent_vec_a[0] * tangnet_vec_b[0]
@@ -88,8 +87,20 @@ class LorentzHyperboloid(Hyperboloic):
     def dist(self, point_a, point_b):
         dist = jnp.arccosh(self.curvature * self.lorentz_inner(point_a, point_b))/(jnp.sqrt(self.curvature))
         return dist
+    
     def exp(self, base_point, tangent_vec):
         tv_ln = jnp.sqrt(self.lorentz_inner(tangent_vec, tangent_vec)) * jnp.sqrt(jnp.abs(self.curv)) * tv_ln
         exp = jnp.cosh( tv_ln ) * base_point + (jnp.sinh(tv_ln)/tv_ln) * tangent_vec
-        return exp 
+        return exp
+    def log(self, base_point, point):
+        k_xy = self.curv * self.loretnz_inner(base_point, point) 
+        arccosh_k_xy = jnp.arccosh(k_xy)
+        log = arccosh_k_xy/(jnp.sinh(arccosh_k_xy))(point - k_xy * base_point)
+        return log 
+    
+    def parallel_transport(self, start_point, end_point, tangent_vec):
+        k_yv = self.curv * self.loretnz_inner(end_point, tangent_vec)
+        k_xy = self.curv * self.loretnz_inner(start_point, end_point)
+        pt = v - (k_yv/k_xy)(start_point + end_point)
+        return pt  
     
