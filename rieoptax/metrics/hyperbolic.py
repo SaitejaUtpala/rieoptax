@@ -1,7 +1,21 @@
-class Hyperbolic(RiemannianManifold):  
+
+
+from abc import ABC, abstractmethod
+from functools import partial
+
+from jax import jit, vmap
+
+class RiemannianManifold(ABC):
+    def __init__(self):
+        j = partial(jit, static_argnums=(0,))
+        v = partial(vmap, in_axes=(0, None))
+        self.exp = jit(v(self.exp))
+        self.log = jit(v(self.log))
+        self.parallel_transport = jit(v())
     
 
 class PoincareBall(Hyperbolic):
+    
     def __init__(self,dim, curvature):
         self.dim = dim 
         self.curvature = curvature
@@ -33,18 +47,24 @@ class PoincareBall(Hyperbolic):
         
     def exp(self, tangent_vec, base_point):
         t = jnp.sqrt(jnp.abs(self.curvature)) * jnp.norm(tangent_vec)
-        point = jnp.tanh(t * self.conformal_factor(base_point))
-        exp = self.mobius_addition(base_point, )
+        point = (jnp.tanh(t/2 * self.conformal_factor(base_point))/t) * t
+        exp = self.mobius_addition(base_point, point)
+        return exp 
         
     def log(self, base_point, point):
         ma = self.mobius_addition(-1*base_point, point)
         abs_sqrt_curv = jnp.sqrt(jnp.abs(self.curvature))
-        norm = jnp.norm(ma)
-        log =2/(abs_sqrt_curv * base_point) jnp.arctanh(abs_sqrt_curv)
-       
-        mul = 2/(abs_sqrt_curv * self.conformal_factor()
-        jnp.arctanh(jnp.sqrt())
+        norm_ma = jnp.norm(ma)
+        mul = (2/(abs_sqrt_curv * self.conformal_factor(base_point))) *  jnp.arctanh(abs_sqrt_curv * norm_ma)
+        log = mul * (ma/norm_ma)
+        return log 
+                 
+    def metric(self, base_point, tangent_vec_a, tangent_vec_b) : 
+        metric  = self.conformal_factor(base_point) * jnp.inp(tangent_vec_a, tangent_vec_b)
+        return metric 
+    
     def parallel_transport(self, start_point, end_point, tangent_vec):
         self.conformal_factor(start_point)
         self.conformal_facotr(end_point)
         pt = self.gyration_operator(end_point, -1*start_point, tangent_vec)
+        return pt 
