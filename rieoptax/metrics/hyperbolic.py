@@ -5,6 +5,7 @@ from functools import partial
 
 from jax import jit, vmap
 
+
 class RiemannianManifold(ABC):
     def __init__(self):
         j = partial(jit, static_argnums=(0,))
@@ -68,3 +69,27 @@ class PoincareBall(Hyperbolic):
         self.conformal_facotr(end_point)
         pt = self.gyration_operator(end_point, -1*start_point, tangent_vec)
         return pt 
+
+
+class LorentzHyperboloid(Hyperboloic):
+    
+    def __init__(self,m, curvature):
+        self.m = m 
+        self.curv = curv
+        
+    
+    def lorentz_inner(self, point_a, point_b):
+        rlip = jnp.inner(tangnet_vec_a, tangent_vec_b) -2 * tangent_vec_a[0] * tangnet_vec_b[0]
+        return lip
+        
+    def metric(self, base_point, tangent_vec_a, tangent_vec_b):
+        return self.lorentz_inner(tangent_vec_a, tangent_vec_b)
+    
+    def dist(self, point_a, point_b):
+        dist = jnp.arccosh(self.curvature * self.lorentz_inner(point_a, point_b))/(jnp.sqrt(self.curvature))
+        return dist
+    def exp(self, base_point, tangent_vec):
+        tv_ln = jnp.sqrt(self.lorentz_inner(tangent_vec, tangent_vec)) * jnp.sqrt(jnp.abs(self.curv)) * tv_ln
+        exp = jnp.cosh( tv_ln ) * base_point + (jnp.sinh(tv_ln)/tv_ln) * tangent_vec
+        return exp 
+    
