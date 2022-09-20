@@ -3,6 +3,7 @@ from functools import partial
 
 from jax import jit, vmap
 
+
 class RiemannianManifold(ABC):
     def __init__(self):
         j = partial(jit, static_argnums=(0,))

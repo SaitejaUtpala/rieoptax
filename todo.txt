@@ -1,4 +1,1 @@
 1)complete stiefel manifold 
-2)complete doubly stochastic matrice
-3)complete full rank matrices 
-4)complete oblique manifold
