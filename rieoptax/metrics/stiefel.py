@@ -10,6 +10,7 @@ class Stiefel(RiemannianManifold):
 class StiefelEuclideanMetric(Stiefel):
     
     def inner_product(self, base_point, tangent_vec_a, tangent_vec_b):
+        
 
     def exp(self, base_point, tangent_vec):
         pass 
