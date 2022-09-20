@@ -10,19 +10,19 @@ class GrassmannCanonicalMetric(RiemannianManifold):
         self.dim = mr
 
     def exp(self, base_point, tangent_vec):
-        u, s, vt = np.linalg.svd(tangent_vector, full_matrices=False)
+        u, s, vt = jnp.linalg.svd(tangent_vec, full_matrices=False)
         exp = (
-            point @ (multitransp(vt) * np.cos(s).reshape(1, -1)) @ vt
-            + (u * np.sin(s).reshape(1, -1)) @ vt
+            base_point @ (vt.T * jnp.cos(s).reshape(1, -1)) @ vt
+            + (u * jnp.sin(s).reshape(1, -1)) @ vt
         )
         return exp
 
     def log(self, base_point, point):
-        ytx = point_b.T @ point_a
-        At = point_b.T - ytx @ point_a.T
+        ytx =point.T @ base_point
+        At = point.T - ytx @ base_point.T
         Bt = jnp.linalg.solve(ytx, At)
         u, s, vt = jnp.linalg.svd(Bt.T, full_matrices=False)
-        log = (u * np.arctan(s).reshape(1, -1)) @ vt
+        log = (u * jnp.arctan(s).reshape(1, -1)) @ vt
         return log
 
     def dist(self, point_a, point_b):
@@ -30,18 +30,18 @@ class GrassmannCanonicalMetric(RiemannianManifold):
         dist = jnp.linalg.norm(jnp.arccos(s))
         return dist
 
-    def inner_product(self, base_point, tangent_vec_a, tangnet_vec_b):
+    def inner_product(self, base_point, tangent_vec_a, tangent_vec_b):
         ip = jnp.tensordot(tangent_vec_a, tangent_vec_b, axes=2)
         return ip
 
     def paralle_transport(self, start_point, end_point, tangent_vec):
-        direction = self.space.log(start_point, end_point)
+        direction = self.log(start_point, end_point)
         u, s, vt = jnp.linalg.svd(direction, full_matrices=False)
-        ut_delta = ut @ tangent_vec  # r @ m, m r
+        ut_delta = u.T @ tangent_vec  
         pt = (
             (
-                base_point @ (v * -1 * np.sin(s).reshape(1, -1))
-                + (u * np.cos(s).reshape(1, -1))
+                start_point @ (vt.T * -1 * jnp.sin(s).reshape(1, -1))
+                + (u * jnp.cos(s).reshape(1, -1))
             )
             @ (ut_delta)
             + tangent_vec
