@@ -1,8 +1,7 @@
-from base import RiemannianManifold
-
 from abc import ABC, abstractmethod
 from functools import partial
 
+from base import RiemannianManifold
 from jax import jit, vmap
 
 
