@@ -1,4 +1,6 @@
 from base import RiemannianManifold
+
+
 class StiefelManifold(RiemannianManifold):
     def __init__(self, m, r):
          if m < r or r < 1:
