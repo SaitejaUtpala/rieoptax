@@ -1,3 +1,5 @@
+from base import RiemannianManifold
+
 from abc import ABC, abstractmethod
 from functools import partial
 
@@ -76,6 +78,9 @@ class PoincareBall(Hyperbolic):
         )
         dist = jnp.arccosh(1 - t) / (jnp.sqrt(jnp.abs(self.curv)))
 
+    def tangent_gaussian(self, sigma):
+        pass 
+
 
 class LorentzHyperboloid(Hyperboloic):
     def __init__(self, m, curvature):
@@ -89,7 +94,7 @@ class LorentzHyperboloid(Hyperboloic):
         )
         return lip
 
-    def metric(self, base_point, tangent_vec_a, tangent_vec_b):
+    def inner_product(self, base_point, tangent_vec_a, tangent_vec_b):
         return self.lorentz_inner(tangent_vec_a, tangent_vec_b)
 
     def dist(self, point_a, point_b):
@@ -118,3 +123,6 @@ class LorentzHyperboloid(Hyperboloic):
         k_xy = self.curv * self.loretnz_inner(start_point, end_point)
         pt = v - (k_yv / k_xy)(start_point + end_point)
         return pt
+
+    def tangent_gaussian(self, sigma):
+        pass 

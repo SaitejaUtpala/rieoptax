@@ -48,3 +48,6 @@ class GrassmannCanonicalMetric(RiemannianManifold):
             - u @ (ut_delta)
         )
         return pt
+
+    def tangent_gaussian(self, sigma):
+        

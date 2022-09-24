@@ -34,37 +34,8 @@ class SPDAffineInvariant(SPDManifold):
 
     def egrad_to_rgrad(self, egrad, base_point):
         return base_point @ egrad @ base_point.T
-
-# class SPDBuresWasserstein(SPDManifold):
-#     def exp(self, base_point, tangent_vec):
-#        return 
     
-#     def log(self, base_point, point ):
-#         return 
-
-#     def dist(self, point_a, point_b):
-#         return 
+    def tangent_gaussian(self, sigma):
+        pass 
     
-#     def parallel_transport(self, base_point, end_point, tangent_vec ):
-#         return 
 
-#     def egrad_to_rgrad(self, egrad, base_point):
-#         return base_point @ egrad @ base_point.T
-
-
-# class SPDGeneralizedBuresWasserstein(SPDManifold):
-#     def exp(self, base_point, tangent_vec):
-#        return 
-    
-#     def log(self, base_point, point ):
-#         return 
-
-#     def dist(self, point_a, point_b):
-#         return 
-    
-#     def parallel_transport(self, base_point, end_point, tangent_vec ):
-#         return 
-
-#     @staticmethod 
-#     def egrad_to_rgrad(self, egrad, base_point):
-#         return base_point @ egrad @ base_point.T
