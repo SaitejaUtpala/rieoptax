@@ -3,6 +3,7 @@ from functools import partial
 
 from base import RiemannianManifold
 from jax import jit, vmap
+from jax import numpy as jnp
 
 
 class Hyperbolic(RiemannianManifold):
@@ -81,16 +82,14 @@ class PoincareBall(Hyperbolic):
         pass 
 
 
-class LorentzHyperboloid(Hyperboloic):
-    def __init__(self, m, curvature):
+class LorentzHyperboloid(RiemannianManifold):
+    def __init__(self, m, curv=-1):
         self.m = m
         self.curv = curv
+        super().__init__()
 
-    def lorentz_inner(self, point_a, point_b):
-        rlip = (
-            jnp.inner(tangnet_vec_a, tangent_vec_b)
-            - 2 * tangent_vec_a[0] * tangnet_vec_b[0]
-        )
+    def lorentz_inner(self, x, y):
+        lip = jnp.inner(x, y) - 2 * x[0] * y[0]
         return lip
 
     def inner_product(self, base_point, tangent_vec_a, tangent_vec_b):
@@ -103,11 +102,7 @@ class LorentzHyperboloid(Hyperboloic):
         return dist
 
     def exp(self, base_point, tangent_vec):
-        tv_ln = (
-            jnp.sqrt(self.lorentz_inner(tangent_vec, tangent_vec))
-            * jnp.sqrt(jnp.abs(self.curv))
-            * tv_ln
-        )
+        tv_ln = jnp.sqrt(self.lorentz_inner(tangent_vec, tangent_vec) * jnp.abs(self.curv))
         exp = jnp.cosh(tv_ln) * base_point + (jnp.sinh(tv_ln) / tv_ln) * tangent_vec
         return exp
 
@@ -124,4 +119,4 @@ class LorentzHyperboloid(Hyperboloic):
         return pt
 
     def tangent_gaussian(self, sigma):
-        pass 
+        pass  
