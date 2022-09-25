@@ -1,5 +1,5 @@
 from base import RiemannianManifold
-from jax import numpy as jnp 
+from jax import numpy as jnp
 
 
 class HypersphereCanonicalMetric(RiemannianManifold):
@@ -39,7 +39,7 @@ class HypersphereCanonicalMetric(RiemannianManifold):
 
     def tangent_gaussian(self, base_point, sigma):
         sample = jnp.random.normal(0, sigma, size=(self.m,))
-        zero_padded = jnp.hstack([np.zeros((1,)), sample])
+        zero_padded = jnp.hstack([jnp.zeros((1,)), sample])
         sample = self.parallel_transport(
             zero_padded, base_point=self.ref_point, end_point=base_point
         )
