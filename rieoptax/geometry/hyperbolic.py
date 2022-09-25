@@ -2,8 +2,9 @@ from abc import ABC, abstractmethod
 from functools import partial
 
 from base import RiemannianManifold
-from jax import jit, vmap
+from jax import jit
 from jax import numpy as jnp
+from jax import vmap
 
 
 class Hyperbolic(RiemannianManifold):
@@ -89,27 +90,27 @@ class LorentzHyperboloid(RiemannianManifold):
         super().__init__()
 
     def lorentz_inner(self, x, y):
-        lip = jnp.inner(x, y) - 2 * x[0] * y[0]
+        lip = jnp.inner(x, y) - 2* x[0] * y[0]
         return lip
 
     def inner_product(self, base_point, tangent_vec_a, tangent_vec_b):
         return self.lorentz_inner(tangent_vec_a, tangent_vec_b)
 
     def dist(self, point_a, point_b):
-        dist = jnp.arccosh(self.curvature * self.lorentz_inner(point_a, point_b)) / (
+        dist = jnp.arccosh(self.curv * self.lorentz_inner(point_a, point_b)) / (
             jnp.sqrt(self.curvature)
         )
         return dist
-
+    
     def exp(self, base_point, tangent_vec):
-        tv_ln = jnp.sqrt(self.lorentz_inner(tangent_vec, tangent_vec) * jnp.abs(self.curv))
+        tv_ln = jnp.sqrt(self.lorentz_inner(tangent_vec, tangent_vec)* jnp.abs(self.curv))
         exp = jnp.cosh(tv_ln) * base_point + (jnp.sinh(tv_ln) / tv_ln) * tangent_vec
         return exp
 
     def log(self, base_point, point):
-        k_xy = self.curv * self.loretnz_inner(base_point, point)
+        k_xy = self.curv * self.lorentz_inner(base_point, point)
         arccosh_k_xy = jnp.arccosh(k_xy)
-        log = arccosh_k_xy / (jnp.sinh(arccosh_k_xy))(point - k_xy * base_point)
+        log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy) ) *(point - (k_xy * base_point))
         return log
 
     def parallel_transport(self, start_point, end_point, tangent_vec):
