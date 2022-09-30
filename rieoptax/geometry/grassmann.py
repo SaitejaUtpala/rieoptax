@@ -7,7 +7,7 @@ class GrassmannCanonicalMetric(RiemannianManifold):
 
         self.m = m
         self.r = r
-        self.dim = mr
+        self.dim = m*r - r*r
 
     def exp(self, base_point, tangent_vec):
         u, s, vt = jnp.linalg.svd(tangent_vec, full_matrices=False)
@@ -34,7 +34,7 @@ class GrassmannCanonicalMetric(RiemannianManifold):
         ip = jnp.tensordot(tangent_vec_a, tangent_vec_b, axes=2)
         return ip
 
-    def paralle_transport(self, start_point, end_point, tangent_vec):
+    def parallel_transport(self, start_point, end_point, tangent_vec):
         direction = self.log(start_point, end_point)
         u, s, vt = jnp.linalg.svd(direction, full_matrices=False)
         ut_delta = u.T @ tangent_vec  
@@ -49,5 +49,8 @@ class GrassmannCanonicalMetric(RiemannianManifold):
         )
         return pt
 
-    def tangent_gaussian(self, sigma):
+    def egrad_to_rgrad(self, base_point, egrad):
+        return self.projector(base_point, egrad)
         
+    def projector(self, base_point, vec):
+        return vec - base_point @(base_point.T @ vec)
