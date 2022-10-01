@@ -10,7 +10,3 @@ def geometry(manifold):
         f.egrad_to_rgrad = manifold.egrad_to_rgrad
         return f
     return wrapper
-
-@geometry()
-def x():
-    print(x.decorator)
