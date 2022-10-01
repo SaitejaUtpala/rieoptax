@@ -1,3 +1,3 @@
-Riemannain Optimization using JAX
+Riemannain Optimization using JAX with Privacy Support 
 
 
