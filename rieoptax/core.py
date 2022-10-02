@@ -25,3 +25,9 @@ class ManifoldArray:
         return cls(children[0], aux_data)
 
 
+def rgrad(f):
+    "Riemannian Gradient Operator"
+    def _temp(mp):
+        g = mp.manifold.egrad_to_rgrad(grad(f)(mp))
+        return g 
+    return _temp
