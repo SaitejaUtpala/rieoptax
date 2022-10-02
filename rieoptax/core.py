@@ -4,8 +4,9 @@ from jax.tree_util import register_pytree_node_class
 
 @register_pytree_node_class
 class ManifoldArray:
-    """A lightweight wrapper for arrays of a model. It combines the `value`
-    (a JAX PyTree) with a corresponding manifold class.
+    """A lightweight wrapper for arrays constrained to mainfold. 
+    It combines the `value` (a JAX PyTree) with a corresponding 'manifold'
+    (Manifold object).
     """
     def __init__(self, value, manifold=None):
         self.value = value
