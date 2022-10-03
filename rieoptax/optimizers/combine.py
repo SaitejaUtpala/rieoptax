@@ -1,4 +1,4 @@
-from turtle import update
+import core
 
 
 def chain(*args):
@@ -33,7 +33,7 @@ def chain(*args):
 
         return updates, tuple(new_state)
 
-    return base.
+    return core.RiemannainGradientTransformation(init_fn, update_fn)
 
 
 

@@ -1,6 +1,10 @@
+from typing_extensions import Protocol
+
 from jax import grad
 from jax import numpy as jnp
 from jax.tree_util import register_pytree_node_class
+from typing import NamedTuple 
+
 
 
 @register_pytree_node_class
@@ -35,40 +39,19 @@ def rgrad(f):
     return _temp
 
 
-class TransformInitFn(typing_extensions.Protocol):
-  """A callable type for the `init` step of a `GradientTransformation`.
-  The `init` step takes a tree of `params` and uses these to construct an
-  arbitrary structured initial `state` for the gradient transformation. This
-  may hold statistics of the past updates or any other non static information.
-  """
+class TransformInitFn(Protocol):
 
-  def __call__(self, params: Params) -> OptState:
-    """The `init` function.
-    Args:
-      params: The initial value of the parameters.
-    Returns:
-      The initial state of the gradient transformation.
-    """
+    def __call__(self, params):
+        "The `init` function"    
+   
 
 
-class TransformUpdateFn(typing_extensions.Protocol):
-  def __call__(
-      self,
-      updates: Updates,
-      state: OptState,
-      params: Optional[Params] = None
-    ) -> Tuple[Updates, OptState]:
-    """The `update` function.
-    Args:
-      updates: A tree of candidate updates.
-      state: The state of the gradient transformation.
-      params: (Optionally) the current value of the parameters.
-    Returns:
-      The transformed updates, and the updated state.
-    """
+class TransformUpdateFn(Protocol):
+    def __call__(self, updates, state, params) :
+        """The `update` function."""
 
 
 class RiemannianGradientTransformation(NamedTuple):
 
-  init: TransformInitFn
-  update: TransformUpdateFn
+    init: TransformInitFn
+    update: TransformUpdateFn
