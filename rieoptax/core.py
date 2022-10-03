@@ -51,6 +51,9 @@ class TransformUpdateFn(Protocol):
         """The `update` function."""
 
 
+class EmptyState(NamedTuple):
+    """An empty state for the simplest """
+
 class RiemannianGradientTransformation(NamedTuple):
 
     init: TransformInitFn

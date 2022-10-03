@@ -2,20 +2,6 @@ import core
 
 
 def chain(*args):
-    """Applies a list of chainable update transformations
-
-    Given a sequnce of chainable transforms, `chain` returns 
-    an `init_fn` by concatenating the states of the individual 
-    transform, and returns an `update_fn` feeding the appropriate
-    state to each other.
-
-    Args:
-        *args : a sequence of chainable(init_fn, update_fn) tuples.
-
-    Returns:
-        A single (init_fn, update_fn) tuple.
-    """
-
     init_fns, update_fns = zip(*args)
 
     def init_fn(params):
