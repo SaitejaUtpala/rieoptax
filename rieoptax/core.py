@@ -52,7 +52,7 @@ class TransformUpdateFn(Protocol):
 
 
 class EmptyState(NamedTuple):
-    """An empty state for the simplest """
+    """An empty state for the simplest stateless transformations."""
 
 class RiemannianGradientTransformation(NamedTuple):
 
