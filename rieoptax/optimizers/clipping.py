@@ -1,8 +1,8 @@
-from jax import numpy as jnp 
+from jax import numpy as jnp
+
 
 def per_example_gradient_clipping(params, grads, clip_norm):
     """Applied per-example gradient clipping."""
-    #bsize = grads[0].shape[0]
     manifold = params.manifold
     norms = manifold.norm(grads)
     divisors = jnp.maximum(norms / clip_norm, 1.0)
