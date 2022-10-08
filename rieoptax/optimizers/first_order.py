@@ -1,13 +1,14 @@
 import jax
+from core import ManifoldArray, RiemannianGradientTransformation
 from jax import numpy as jnp
+from privacy import differentially_private_aggregate
+from combine import chain
 
-from core import RiemannianGradientTransformation, ManifoldArray
 
 class EmptyState(NamedTuple):
   """An empty state for the simplest stateless transformations."""
 
 
-ScaleState = EmptyState
 
 def scale(step_size) :
   """Scale updates by some fixed scalar `step_size`."""
@@ -35,6 +36,17 @@ def _scale_by_learning_rate(learning_rate, flip_sign=True):
 def rsgd(learning_rate):
     """Riemannian stochastic gradient descent."""
     return _scale_by_learning_rate(learning_rate)
+
+def dp_rsgd(learning_rate, norm_clip, sigma, seed):
+    "Differenitally private riemannian (stochastic) gradient descent."
+    return chain(
+      differentially_private_aggregate(norm_clip=norm_clip,sigma=sigma,seed=seed),
+      _scale_by_learning_rate(learning_rate)
+  )
+    
+    
+
+
 
 
 
