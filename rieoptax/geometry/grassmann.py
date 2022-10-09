@@ -1,8 +1,7 @@
 from base import RiemannianManifold
 from jax import numpy as jnp
 
-
-def GrassmannCanonical(RiemannianManifold):
+class GrassmannCanonical(RiemannianManifold):
     def __init__(self, m, r):
 
         self.m = m
