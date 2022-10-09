@@ -1,7 +1,7 @@
 from combine import chain
+from core import RiemannianGradientTransformation
 from privacy import differentially_private_aggregate
 from transforms import scale_by_learning_rate, variance_reduction
-from core import RiemannianGradientTransformation
 
 
 def rsgd(learning_rate: float) -> RiemannianGradientTransformation:
@@ -14,7 +14,7 @@ def rasa(learning_rate: float, beta: float) -> RiemannianGradientTransformation:
     return chain(variance_reduction(), scale_by_learning_rate(learning_rate))
 
 
-def rsvrg(learning_rate) -> RiemannianGradientTransformation:
+def rsvrg(learning_rate:float) -> RiemannianGradientTransformation:
     """Riemannain stochastic variance reduction gradient descent."""
     return chain(variance_reduction(), scale_by_learning_rate(learning_rate))
 
