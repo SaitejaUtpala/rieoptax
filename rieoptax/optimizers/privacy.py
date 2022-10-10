@@ -1,8 +1,8 @@
 import imp
 from typing import NamedTuple
 
-from core import RiemannianGradientTransformation
 import jax
+from core import RiemannianGradientTransformation
 from jax import numpy as jnp
 
 
@@ -22,9 +22,6 @@ class DifferentiallyPrivateAggregateState(NamedTuple):
 
 
 
-
-
-
 def differentially_private_aggregate(
     norm_clip: float,
     sigma: float,
@@ -34,7 +31,7 @@ def differentially_private_aggregate(
 
   def init_fn(params):
     del params
-    return DifferentiallyPrivateAggregateState(rng_key=jran.random.PRNGKey(seed))
+    return DifferentiallyPrivateAggregateState(rng_key=jax.random.PRNGKey(seed))
 
   def update_fn(updates, state, params):
     manifold = params.manifold
