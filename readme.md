@@ -28,7 +28,7 @@ It consists of four module
 
 2) [mechanism](https://github.com/SaitejaUtpala/rieoptax/tree/master/rieoptax/mechanism) : Noise calibration for differentially private mechanism with manifold valued outputs
 
-3) [optimizers]https://github.com/SaitejaUtpala/rieoptax/tree/master/rieoptax/optimizers : Riemannian Optimization algorithms
+3) [optimizers](https://github.com/SaitejaUtpala/rieoptax/tree/master/rieoptax/optimizers) : Riemannian Optimization algorithms
 
 ## Installation
 
@@ -41,7 +41,4 @@ Currently installaion is done directly through github and it will soon be availa
 
 
 ## Citing Rieoptax
-If you found Rieoptax useful, kindly cite us at 
-
-[DeepMind JAX Ecosystem]: https://deepmind.com/blog/article/using-jax-to-accelerate-our-research "DeepMind JAX Ecosystem"
-[DeepMind JAX Ecosystem citation]: https://github.com/deepmind/jax/blob/main/deepmind2020jax.txt "Citation"
+Preprint Coming Soon
