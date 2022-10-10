@@ -1,1 +1,6 @@
-typing-extensions
+autodp
+chex
+jax
+jaxlib
+numpy
+typing_extensions
