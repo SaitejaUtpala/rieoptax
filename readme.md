@@ -22,7 +22,7 @@ Two main differences between Euclidean Optimization and Riemannian Optimization 
 
 ## Overview
 
-It consists of four module
+It consists of three module
 
 1) [geometry](https://github.com/SaitejaUtpala/rieoptax/tree/master/rieoptax/geometry) : Implements several Riemannian manifolds of interest along with useful operations like Riemanian Exponential, Logarithmic and Euclidean gradient to Riemannian gradeint conversion rules
 
