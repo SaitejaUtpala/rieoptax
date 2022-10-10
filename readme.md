@@ -20,6 +20,8 @@ Two main differences between Euclidean Optimization and Riemannian Optimization 
 
 ![image](https://user-images.githubusercontent.com/73220310/194949472-6450893c-662d-4ca2-9180-d41d7c17778e.png)
 
+For full example [notebooks](https://github.com/SaitejaUtpala/rieoptax/tree/master/notebooks) folder
+
 ## Overview
 
 It consists of three module
@@ -34,9 +36,8 @@ It consists of three module
 
 Currently installaion is done directly through github and it will soon be available throguh PyPI.
 
-
 ```
-!pip install git + 
+!pip install git+https://github.com/SaitejaUtpala/rieoptax.git
 ```
 
 
