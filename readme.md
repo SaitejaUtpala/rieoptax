@@ -28,7 +28,7 @@ It consists of four module
 
 2) [mechanism](https://github.com/SaitejaUtpala/rieoptax/tree/master/rieoptax/mechanism) : Noise calibration for differentially private mechanism with manifold valued outputs
 
-3) [optimizers]
+3) [optimizers]https://github.com/SaitejaUtpala/rieoptax/tree/master/rieoptax/optimizers : Riemannian Optimization algorithms
 
 ## Installation
 
