@@ -41,4 +41,4 @@ Currently installaion is done directly through github and it will soon be availa
 
 
 ## Citing Rieoptax
-Preprint Coming Soon
+Preprint Coming Soon! 
