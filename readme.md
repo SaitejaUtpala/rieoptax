@@ -1,48 +1,39 @@
-# Optax
+# Rieoptax
 
-![CI status](https://github.com/deepmind/optax/workflows/tests/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/optax/badge/?version=latest)](http://optax.readthedocs.io)
-![pypi](https://img.shields.io/pypi/v/optax)
+![CI status](https://github.com/saitejautpala/rieoptax/workflows/tests/badge.svg)
 
 ## Introduction
 
-Optax is a gradient processing and optimization library for JAX.
+Rieoptax is library for Riemannian Optimization in [JAX](https://github.com/google/jax).  The proposed library is mainly driven by the needs of efficient implementation of manifold-valued operations, optimization solvers and neural network layers readily compatible with GPU and even TPU processors.
 
-Optax is designed to facilitate research by providing building blocks
-that can be easily recombined in custom ways.
+### Blitz Intro to Riemannian Optimization
 
-Our goals are to
 
-*   Provide simple, well-tested, efficient implementations of core components.
-*   Improve research productivity by enabling to easily combine low level
-    ingredients into custom optimisers (or other gradient processing components).
-*   Accelerate adoption of new ideas by making it easy for anyone to contribute.
+Riemannian optimization  considers the following problem
 
-We favour focusing on small composable building blocks that can be effectively
-combined into custom solutions. Others may build upon these basic components
-more complicated abstractions. Whenever reasonable, implementations prioritise
-readability and structuring code to match standard equations, over code reuse.
+$$\min_{w \in \mathcal{M}} f(w)$$ where $f : \mathcal{M} \rightarrow \mathbb{R}$, and $\mathcal{M}$ denotes a Riemannian manifold. 
+Instead of considering  as a constrained problem, Riemannian optimization views it as an unconstrained problem on the manifold space. Riemannian (stochastic) gradient descent generalizes the Euclidean gradient descent with intrinsic updates on manifold, i.e., $w_{t+1} = {\rm Exp}_{w_t}(- \eta_t \, {\rm grad} f(w_t))$, where ${\rm grad} f(w_t)$ is the Riemannian (stochastic) gradient, ${\rm Exp}_w(\cdot)$ is the Riemannian exponential map at $w$ and $\eta_t$ is the step size. 
 
-An initial prototype of this library was made available in JAX's experimental
-folder as `jax.experimental.optix`. Given the wide adoption across DeepMind
-of `optix`, and after a few iterations on the API, `optix` was eventually moved
-out of `experimental` as a standalone open-source library, renamed `optax`.
+### Quick start
+ 
+Two main differences between Euclidean Optimization and Riemannian Optimization is Riemannian Gradient $\text{grad} f(w)$ and Riemannian Exponential map $$
+ ```Python
+from rieoptax.core import rgrad, ManifoldArray
+```
 
-Documentation on Optax can be found at [optax.readthedocs.io](https://optax.readthedocs.io/).
+## Overview
+
+It consists of four module
+
+1) [geometry](https://github.com/SaitejaUtpala/rieoptax/tree/master/rieoptax/geometry) : Implements several Riemannian manifolds of interest along with useful operations like Riemanian Exponential, Logarithmic and Euclidean gradient to Riemannian gradeint conversion rules
+
+2) [mechnism](https://github.com/SaitejaUtpala/rieoptax/tree/master/rieoptax/mechanism) : Noise calibration for differentially private mechanism with manifold valued outputs
+
+3) 
 
 ## Installation
 
-You can install the latest released version of Optax from PyPI via:
-
-```sh
-pip install optax
-```
-
-or you can install the latest development version from GitHub:
-
-```sh
-pip install git+https://github.com/deepmind/optax.git
-```
+Currently 
 
 ## Quickstart
 
