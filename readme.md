@@ -16,7 +16,7 @@ Instead of considering  as a constrained problem, Riemannian optimization views 
 
 ### Quick start
  
-Two main differences between Euclidean Optimization and Riemannian Optimization is Riemannian Gradient $\text{grad} f(w)$ and Riemannian Exponential map $\text{Exp}$. Main design goal of Rieoptax to handle these behind scenes and make it 
+Two main differences between Euclidean Optimization and Riemannian Optimization is Riemannian Gradient $\text{grad} f(w)$ and Riemannian Exponential map $\text{Exp}$. Main design goal of Rieoptax to handle above two things behind scenes and make it similar to standard optimization in [Optax](https://github.com/deepmind/optax)
 
 ![image](https://user-images.githubusercontent.com/73220310/194949472-6450893c-662d-4ca2-9180-d41d7c17778e.png)
 
