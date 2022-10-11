@@ -37,7 +37,7 @@ It consists of three module
 Currently installaion is done directly through github and it will soon be available through PyPI.
 
 ```
-!pip install git+https://github.com/SaitejaUtpala/rieoptax.git
+pip install git+https://github.com/SaitejaUtpala/rieoptax.git
 ```
 
 
