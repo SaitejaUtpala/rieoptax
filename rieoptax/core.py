@@ -30,24 +30,6 @@ class ManifoldArray:
         return cls(children[0], aux_data)
 
 
-@register_pytree_node_class
-class TangentArray():
-    """A lightweight wrapper for arrays constrained to Tangent. 
-    It combines the `value` (a JAX PyTree) with a corresponding 'manifold'
-    (Manifold object).
-    """
-
-    def __init__(self, value : jnp.array, ba) -> None: 
-        self.value = value
-        self.ba = manifold
-
-def rgrad(f):
-    "Riemannian Gradient Operator"
-    def _temp(*args, **kwargs):
-        g = args[0].manifold.egrad_to_rgrad(args[0],grad(f)(*args, **kwargs))
-        g = ManifoldArray(g, args[0].manifold)
-        return g 
-    return _temp
 
 
 class TransformInitFn(Protocol):
