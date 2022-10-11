@@ -1,4 +1,4 @@
-from core import RiemannainGradientTransformation
+from rieoptax.core import RiemannianGradientTransformation
 
 
 def chain(*args):
@@ -19,7 +19,7 @@ def chain(*args):
 
         return updates, tuple(new_state)
 
-    return RiemannainGradientTransformation(init_fn, update_fn)
+    return RiemannianGradientTransformation(init_fn, update_fn)
 
 
 

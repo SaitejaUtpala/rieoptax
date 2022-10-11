@@ -1,9 +1,8 @@
-import jax
 import functools
 from typing import Any, Callable, NamedTuple, Optional
 
-from core import EmptyState, ManifoldArray, RiemannianGradientTransformation
-
+import jax
+from rieoptax.core import EmptyState, ManifoldArray, RiemannianGradientTransformation
 
 ScaleState = EmptyState()
 
