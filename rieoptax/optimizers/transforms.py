@@ -27,7 +27,7 @@ def scale(step_size) :
 
   def update_fn(updates, state, params=None):
     del params
-    updates = jax.tree_util.tree_map(lambda g: step_size * g, updates)
+    updates = step_size*updates.value
     return updates, state
 
   return RiemannianGradientTransformation(init_fn, update_fn)
