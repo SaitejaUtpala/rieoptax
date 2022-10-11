@@ -1,4 +1,4 @@
-import core
+from core import RiemannainGradientTransformation
 
 
 def chain(*args):
@@ -19,7 +19,7 @@ def chain(*args):
 
         return updates, tuple(new_state)
 
-    return core.RiemannainGradientTransformation(init_fn, update_fn)
+    return RiemannainGradientTransformation(init_fn, update_fn)
 
 
 

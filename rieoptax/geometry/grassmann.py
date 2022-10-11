@@ -1,5 +1,6 @@
-from base import RiemannianManifold
+from rieoptax.geometry.base import RiemannianManifold
 from jax import numpy as jnp
+
 
 class GrassmannCanonical(RiemannianManifold):
     def __init__(self, m, r):
@@ -19,7 +20,6 @@ class GrassmannCanonical(RiemannianManifold):
         return exp
 
     def retr(self, base_point, tangent_vec):
-        # print("a")
         u, _, vt = jnp.linalg.svd(base_point + tangent_vec, full_matrices=False)
         return u @ vt
 

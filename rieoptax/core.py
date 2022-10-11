@@ -30,6 +30,13 @@ class ManifoldArray:
         return cls(children[0], aux_data)
 
 
+def rgrad(f):
+    "Riemannian Gradient Operator"
+    def _temp(*args, **kwargs):
+        g = args[0].manifold.egrad_to_rgrad(args[0],grad(f)(*args, **kwargs))
+        g = ManifoldArray(g, args[0].manifold)
+        return g 
+    return _temp
 
 
 class TransformInitFn(Protocol):
