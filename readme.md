@@ -1,5 +1,5 @@
 # Rieoptax
-
+### Project is in Beta stage and API is subject to change.
 ![CI status](https://github.com/saitejautpala/rieoptax/workflows/tests/badge.svg)
 
 ## Introduction
@@ -12,11 +12,11 @@ Rieoptax is library for Riemannian Optimization in [JAX](https://github.com/goog
 Riemannian optimization  considers the following problem
 
 $$\min_{w \in \mathcal{M}} f(w)$$ where $f : \mathcal{M} \rightarrow \mathbb{R}$, and $\mathcal{M}$ denotes a Riemannian manifold. 
-Instead of considering  as a constrained problem, Riemannian optimization views it as an unconstrained problem on the manifold space. Riemannian (stochastic) gradient descent generalizes the Euclidean gradient descent with intrinsic updates on manifold, i.e., $w_{t+1} = {\rm Exp}_{w_t}(- \eta_t \, {\rm grad} f(w_t))$, where ${\rm grad} f(w_t)$ is the Riemannian (stochastic) gradient, ${\rm Exp}_w(\cdot)$ is the Riemannian exponential map at $w$ and $\eta_t$ is the step size. 
+Instead of considering  as a constrained problem, Riemannian optimization views it as an unconstrained problem on the manifold space. Riemannian (stochastic) gradient descent generalizes the Euclidean gradient descent with intrinsic updates on manifold, i.e., $w_{t+1} = {\rm Exp}_{w_t}(- \eta_t  {\rm grad} f(w_t))$, where ${\rm grad} f(w_t)$ is the Riemannian (stochastic) gradient, ${\rm Exp}_w(\cdot)$ is the Riemannian exponential map at $w$ and $\eta_t$ is the step size. 
 
 ### Quick start
  
-Two main differences between Euclidean Optimization and Riemannian Optimization is Riemannian Gradient $\text{grad} f(w)$ and Riemannian Exponential map $\text{Exp}$. Main design goal of Rieoptax to handle above two things behind scenes and make it similar to standard optimization in [Optax](https://github.com/deepmind/optax)
+Two main differences between Euclidean Optimization and Riemannian Optimization is Riemannian Gradient $\text{grad} f(w)$ and Riemannian Exponential map $\text{Exp}$. Main design goal of Rieoptax is to handle above two things behind scenes and make it similar to standard optimization in [Optax](https://github.com/deepmind/optax)
 
 ![image](https://user-images.githubusercontent.com/73220310/194949472-6450893c-662d-4ca2-9180-d41d7c17778e.png)
 
@@ -42,4 +42,5 @@ pip install git+https://github.com/SaitejaUtpala/rieoptax.git
 
 
 ## Citing Rieoptax
-Preprint Coming Soon! 
+Preprint availabe at https://arxiv.org/pdf/2210.04840.pdf
+
