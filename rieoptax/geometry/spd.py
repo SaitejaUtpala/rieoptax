@@ -1,13 +1,19 @@
+from functools import partial
 from typing import Callable
 
 from jax import grad, jit
 from jax import numpy as jnp
 from jax import vmap
-from functools import partial
+
 from rieoptax.geometry.base import RiemannianManifold
 
 
 class SPDManifold(RiemannianManifold):
+
+    def __init__(self, m):
+        self.m = m
+        super().__init__()
+
     def sqrt_neg_sqrt(self, spd):
         eigval, eigvec = jnp.linalg.eigh(spd[None])
         pow_eigval = jnp.stack([jnp.power(eigval, 0.5), jnp.power(eigval, -0.5)])
@@ -34,12 +40,8 @@ class SPDManifold(RiemannianManifold):
 
 
 class SPDAffineInvariant(SPDManifold):
-    def __init__(self, m):
-        self.m = m
-        super().__init__()
-
+   
     def exp(self, base_point, tangent_vec):
-
         powers = self.sqrt_neg_sqrt(base_point)
         eigval, eigvec = jnp.linalg.eigh(powers[1] @ tangent_vec @ powers[1])
         middle_exp = (jnp.exp(eigval).reshape(1, -1) * eigvec) @ eigvec.T
