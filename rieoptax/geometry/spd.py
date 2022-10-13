@@ -1,4 +1,5 @@
-from base import RiemannianManifold
+
+from rieoptax.geometry.base import RiemannianManifold
 from jax import numpy as jnp
 
 
@@ -20,7 +21,7 @@ class SPDManifold(RiemannianManifold):
         spd = spd + spd.T
         return spd
     
-class SPDAffineInvariant(RiemannianManifold):
+class SPDAffineInvariant(SPDManifold):
     
     def __init__(self, m):
         self.m = m

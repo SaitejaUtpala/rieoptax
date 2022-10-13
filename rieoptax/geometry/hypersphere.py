@@ -1,4 +1,5 @@
-from base import RiemannianManifold
+from rieoptax.geometry.base import RiemannianManifold
+
 from jax import numpy as jnp
 
 

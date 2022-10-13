@@ -1,5 +1,6 @@
-from rieoptax.geometry.base import RiemannianManifold
 from jax import numpy as jnp
+
+from rieoptax.geometry.base import RiemannianManifold
 
 
 class GrassmannCanonical(RiemannianManifold):

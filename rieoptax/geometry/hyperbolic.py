@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import partial
+from rieoptax.geometry.base import RiemannianManifold
 
-from base import RiemannianManifold
 from jax import jit
 from jax import numpy as jnp
 from jax import vmap
