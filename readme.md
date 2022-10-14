@@ -1,5 +1,5 @@
 # Rieoptax
-### Project is in Beta stage and API is subject to change.
+### Project is in Beta stage with active development and API is subject to change.
 ![CI status](https://github.com/saitejautpala/rieoptax/workflows/tests/badge.svg)
 
 ## Introduction
