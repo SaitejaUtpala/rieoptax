@@ -1,6 +1,8 @@
 from functools import partial
 from typing import Callable
 
+from chex import Array
+
 from jax import grad, jit
 from jax import numpy as jnp
 from jax import vmap
