@@ -113,3 +113,46 @@ class SPDLogEuclidean(SPDManifold):
         norm = self.diff_logm(base_point, tangent_vec)
         return self.norm(diff)
     
+class SPDBuresWasserstein(SPDManifold):
+    
+    def exp(self, base_point, tangent_vec):
+        lyp = self.lyapunov(base_point, tangent_vec)
+        return base_point + tangent_vec + lyp @ base_point @ lyp
+        
+    def log(self, base_point, point):
+        powers = self.sqrt_neg_sqrt(base_point)
+        pdt = self.sqrt(powers[0] @ point @ powers[0])
+        sqrt_product = powers[0] @ pdt @ powers[1]
+        return sqrt_product + sqrt_product.T  - 2 * base_point
+    
+    def inp(self, base_point, tangent_vec_a, tangent_vec_b):
+        lyp = self.lyapunov(base_point, tangent_vec)
+        return 0.5 * self.trace_matprod(lyp, tangent_vec)
+        
+    def dist(self, point_a, point_b):
+        sqrt_a =  self.sqrt(point_a)
+        prod = self.sqrt(sqrt_a @ point_b @ sqrt_a)
+        return jnp.trace(point_a) + jnp.trace(point_b)-2*jnp.trace(prod)
+        
+    def egrad_to_rgrad(self, base_point, egrad):
+        return 4*self.symmetrize(egrad @ base_point)
+        
+class SPDEuclidean(SPDManifold):
+    
+    def inp(self, base_point, tangent_vec_a, tangent_vec_b):
+        return self.trace_matprod(tangent_vec_a, tangent_vec_b)
+    
+    def exp(self, base_point, tangent_vec):
+        return base_point + tangent_vec
+   
+    def log(self, base_point, point) :
+        return point-base_point
+        
+    def egrad_to_rgrad(self, base_point, egrad):
+        return egrad 
+    
+    def dist(self, point_a, point_b):
+        return self.norm(point_a - point_b)
+    
+    def pt(self, start_point, end_point, tangent_vec):
+        return tangent_vec
