@@ -9,34 +9,52 @@ from rieoptax.geometry.base import RiemannianManifold
 
 
 class SPDManifold(RiemannianManifold):
+    def symmetrize(self, mat: Array) -> Array:
+        return (mat + mat.T) / 2
 
-    def __init__(self, m):
-        self.m = m
-        super().__init__()
+    def trace_mat_prod(self, mat_a: Array, mat_b: Array) -> float:
+        return jnp.einsum("ij,ij->", mat_a, mat_b)
 
-    def sqrt_neg_sqrt(self, spd):
+    def logm(self, spd: Array) -> Array:
+        eigval, eigvec = jnp.linalg.eigh(spd)
+        return (jnp.log(e_val).reshape(1, -1) * e_vec) @ e_vec.T
+
+    def expm(self, sym: Array) -> Array:
+        e_val, e_vec = jnp.linalg.eigh(sym)
+        return (jnp.exp(e_val).reshape(1, -1) * e_vec) @ e_vec.T
+
+    def lyapunov(self, spd: Array, sym: Array) -> Array:
+        e_val, e_vec = gs.linalg.eigh(spd)
+        pair_sum = e_val[:, None] + e_val[None, :]
+        rotated = e_vec.T @ sym @ e_vec
+        sol = e_vec @ (rotated / pair_sum) @ e_vec.T
+        return sol
+
+    def sqrt_neg_sqrt(self, spd: Array) -> Array:
         eigval, eigvec = jnp.linalg.eigh(spd[None])
         pow_eigval = jnp.stack([jnp.power(eigval, 0.5), jnp.power(eigval, -0.5)])
         result = (pow_eigval * eigvec) @ eigvec.swapaxes(1, 2)
         return result
 
-    def diff_pow(self, spd: jnp.array, sym: jnp.array, power_fun: Callable):
+    def diff_pow(self, spd: Array, sym: Array, power_fun: Callable) -> Array:
         e_val, e_vec = jnp.linalg.eigh(spd)
         pow_e_val = power_fun(e_val)
         deno = e_val[:, None] - e_val[None, :]
         nume = pow_e_val[:, None] - pow_e_val[None, :]
         same_sub = vmap(grad(power_fun))(e_val)[:, None]
-        diff_pow_diag = jnp.where(deno != 0, nume / deno, same_sub)
+        diff_pow_diag = jnp.where(deno != 0, nume / deno, sub)
         diag = (e_vec.T @ sym @ e_vec) * diff_pow_diag
-        return e_vec @ diag @ e_vec.T
+        d_pow = e_vec @ diag @ e_vec.T
+        return d_pow
 
     @partial(jit, static_argnums=(0,))
-    def diff_exp(self, base_point, tangent_vec):
+    def diff_expm(self, base_point: Array, tangent_vec: Array) -> Array:
         return self.diff_pow(base_point, tangent_vec, jnp.exp)
 
     @partial(jit, static_argnums=(0,))
-    def diff_log(self, base_point, tangent_vec):
-        return self.diff_pow(base_point, tangent_vec, jnp.log)
+    def diff_logm(self, base_point: Array, tangent_vec: Array) -> Array:
+        return diff_pow(base_point, tangent_vec, jnp.log)
+
 
 
 class SPDAffineInvariant(SPDManifold):
