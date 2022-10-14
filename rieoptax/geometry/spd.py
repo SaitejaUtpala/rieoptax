@@ -62,3 +62,34 @@ class SPDAffineInvariant(SPDManifold):
 
     def egrad_to_rgrad(self, egrad, base_point):
         return base_point @ egrad @ base_point.T
+
+    
+class SPDLogEuclidean(SPDManifold):
+    
+    def exp(self, base_point, tangent_vec):
+        log_bp = self.diff_logm(base_point, tangent_vec)
+        return self.expm(self.logm(base_point) + log_bp )
+        
+    def log(self, base_point, point):
+        logm_bp = self.logm(base_point)
+        logm_p = self.logm(point) 
+        return self.diff_expm(logm_bp, logm_p - logm_bp)
+        
+    def pt(self, start_point, end_point, tangent_vec):
+        logm_ep = self.logm(end_point)
+        tv = self.diff_logm(start_point, tangent_vec)
+        return self.diff_expm(logm_ep, tv)    
+    
+    def inp(self, base_point, tangent_vec_a, tannget_vec_b):
+        de_a = self.diff_logm(base_point, tangent_vec_a)
+        de_b = self.diff_logm(base_point, tangent_vec_b)
+        return jnp.inner(de_a, de_b)
+    
+    def dist(self, point_a, point_b):
+        diff = self.logm(point_a) - self.logm(point_b)
+        return self.norm(diff)
+    
+    def norm(self, base_point, tangent_vec):
+        norm = self.diff_logm(base_point, tangent_vec)
+        return self.norm(diff)
+    
