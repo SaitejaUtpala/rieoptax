@@ -50,109 +50,114 @@ class SPDManifold(RiemannianManifold):
         return d_pow
 
     @partial(jit, static_argnums=(0,))
-    def diff_expm(self, base_point: Array, tangent_vec: Array) -> Array:
-        return self.diff_pow(base_point, tangent_vec, jnp.exp)
+    def diff_expm(self, bpt: Array, tv: Array) -> Array:
+        return self.diff_pow(bpt, tv, jnp.exp)
 
     @partial(jit, static_argnums=(0,))
-    def diff_logm(self, base_point: Array, tangent_vec: Array) -> Array:
-        return diff_pow(base_point, tangent_vec, jnp.log)
+    def diff_logm(self, bpt: Array, tv: Array) -> Array:
+        return diff_pow(bpt, tv, jnp.log)
 
 
 
 class SPDAffineInvariant(SPDManifold):
    
-    def exp(self, base_point, tangent_vec):
-        powers = self.sqrt_neg_sqrt(base_point)
-        eigval, eigvec = jnp.linalg.eigh(powers[1] @ tangent_vec @ powers[1])
-        middle_exp = (jnp.exp(eigval).reshape(1, -1) * eigvec) @ eigvec.T
-        exp = powers[0] @ middle_exp @ powers[0]
+    def exp(self, bpt, tv):
+        powers = self.sqrt_neg_sqrt(bpt)
+        eigval, eigvec = jnp.linalg.eigh(powers[1] @ tv @ powers[1])
+        m_exp = (jnp.exp(eigval).reshape(1, -1) * eigvec) @ eigvec.T
+        exp = powers[0] @ m_exp @ powers[0]
         return exp
 
-    def log(self, base_point, point):
-        powers = self.sqrt_neg_sqrt(base_point)
-        eigval, eigvec = jnp.linalg.eigh(powers[1] @ point @ powers[1])
+    def log(self, bpt, pt):
+        powers = self.sqrt_neg_sqrt(bpt)
+        eigval, eigvec = jnp.linalg.eigh(powers[1] @ pt @ powers[1])
         middle_log = (jnp.log(eigval).reshape(1, -1) * eigvec) @ eigvec.T
         log = powers[0] @ middle_log @ powers[0]
         return log
 
-    def dist(self, point_a, point_b):
-        eigval = jnp.linalg.eigvals(jnp.linalg.inv(point_b) @ point_a)
+    def inp(self, bpt, tv) : 
+
+    def pt(self, bpt, tv_a, tv_b):
+
+
+    def dist(self, pt_a, pt_b):
+        eigval = jnp.linalg.eigvals(jnp.linalg.inv(pt_b) @ pt_a)
         dist = jnp.linalg.norm(jnp.log(eigval))
         return dist
 
-    def egrad_to_rgrad(self, egrad, base_point):
-        return base_point @ egrad @ base_point.T
+    def egrad_to_rgrad(self, egrad, bpt):
+        return bpt @ egrad @ bpt.T
 
     
 class SPDLogEuclidean(SPDManifold):
     
-    def exp(self, base_point, tangent_vec):
-        log_bp = self.diff_logm(base_point, tangent_vec)
-        return self.expm(self.logm(base_point) + log_bp )
+    def exp(self, bpt, tv):
+        log_bp = self.diff_logm(bpt, tv)
+        return self.expm(self.logm(bpt) + log_bp )
         
-    def log(self, base_point, point):
-        logm_bp = self.logm(base_point)
-        logm_p = self.logm(point) 
+    def log(self, bpt, pt):
+        logm_bp = self.logm(bpt)
+        logm_p = self.logm(pt) 
         return self.diff_expm(logm_bp, logm_p - logm_bp)
         
-    def pt(self, start_point, end_point, tangent_vec):
+    def pt(self, start_point, end_point, tv):
         logm_ep = self.logm(end_point)
-        tv = self.diff_logm(start_point, tangent_vec)
+        tv = self.diff_logm(start_point, tv)
         return self.diff_expm(logm_ep, tv)    
     
-    def inp(self, base_point, tangent_vec_a, tannget_vec_b):
-        de_a = self.diff_logm(base_point, tangent_vec_a)
-        de_b = self.diff_logm(base_point, tangent_vec_b)
+    def inp(self, bpt, tangent_vec_a, tannget_vec_b):
+        de_a = self.diff_logm(bpt, tangent_vec_a)
+        de_b = self.diff_logm(bpt, tangent_vec_b)
         return jnp.inner(de_a, de_b)
     
-    def dist(self, point_a, point_b):
-        diff = self.logm(point_a) - self.logm(point_b)
+    def dist(self, pt_a, pt_b):
+        diff = self.logm(pt_a) - self.logm(pt_b)
         return self.norm(diff)
     
-    def norm(self, base_point, tangent_vec):
-        norm = self.diff_logm(base_point, tangent_vec)
+    def norm(self, bpt, tv):
+        norm = self.diff_logm(bpt, tv)
         return self.norm(diff)
     
 class SPDBuresWasserstein(SPDManifold):
     
-    def exp(self, base_point, tangent_vec):
-        lyp = self.lyapunov(base_point, tangent_vec)
-        return base_point + tangent_vec + lyp @ base_point @ lyp
+    def exp(self, bpt, tv):
+        lyp = self.lyapunov(bpt, tv)
+        return bpt + tv + lyp @ bpt @ lyp
         
-    def log(self, base_point, point):
-        powers = self.sqrt_neg_sqrt(base_point)
-        pdt = self.sqrt(powers[0] @ point @ powers[0])
+    def log(self, bpt, pt):
+        powers = self.sqrt_neg_sqrt(bpt)
+        pdt = self.sqrt(powers[0] @ pt @ powers[0])
         sqrt_product = powers[0] @ pdt @ powers[1]
-        return sqrt_product + sqrt_product.T  - 2 * base_point
+        return sqrt_product + sqrt_product.T  - 2 * bpt
     
-    def inp(self, base_point, tangent_vec_a, tangent_vec_b):
-        lyp = self.lyapunov(base_point, tangent_vec)
-        return 0.5 * self.trace_matprod(lyp, tangent_vec)
+    def inp(self, bpt, tangent_vec_a, tangent_vec_b):
+        lyp = self.lyapunov(bpt, tv)
+        return 0.5 * self.trace_matprod(lyp, tv)
         
-    def dist(self, point_a, point_b):
-        sqrt_a =  self.sqrt(point_a)
-        prod = self.sqrt(sqrt_a @ point_b @ sqrt_a)
-        return jnp.trace(point_a) + jnp.trace(point_b)-2*jnp.trace(prod)
+    def dist(self, pt_a, pt_b):
+        sqrt_a =  self.sqrt(pt_a)
+        prod = self.sqrt(sqrt_a @ pt_b @ sqrt_a)
+        return jnp.trace(pt_a) + jnp.trace(pt_b)-2*jnp.trace(prod)
         
-    def egrad_to_rgrad(self, base_point, egrad):
-        return 4*self.symmetrize(egrad @ base_point)
+    def egrad_to_rgrad(self, bpt, egrad):
+        return 4*self.symmetrize(egrad @ bpt)
         
 class SPDEuclidean(SPDManifold):
     
-    def inp(self, base_point, tangent_vec_a, tangent_vec_b):
+    def inp(self, bpt, tangent_vec_a, tangent_vec_b):
         return self.trace_matprod(tangent_vec_a, tangent_vec_b)
     
-    def exp(self, base_point, tangent_vec):
-        return base_point + tangent_vec
+    def exp(self, bpt, tv):
+        return bpt + tv
    
-    def log(self, base_point, point) :
-        return point-base_point
+    def log(self, bpt, pt) :
+        return pt-bpt
         
-    def egrad_to_rgrad(self, base_point, egrad):
+    def egrad_to_rgrad(self, bpt, egrad):
         return egrad 
     
-    def dist(self, point_a, point_b):
-        return self.norm(point_a - point_b)
+    def dist(self, pt_a, pt_b):
+        return self.norm(pt_a - pt_b)
     
-    def pt(self, start_point, end_point, tangent_vec):
-        return tangent_vec
+    def pt(self, start_point, end_point, tv):
+        return tv

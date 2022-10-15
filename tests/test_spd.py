@@ -13,10 +13,13 @@ class TestSPDAffineInvarinat(absltest.TestCase):
         assert_trees_all_close(manifold.exp(bp, tv), expected)
 
     def test_log():
-        
+        p=jnp.array([[1.0, 0.0], [0.0, 1.0]])
+        bp=jnp.array([[2.0, 0.0], [0.0, 2.0]])
+        exp=jnp.array([[-2 * jnp.log(2), 0.0], [0.0, -2 * jnp.log(2)]])
+        assert_trees_all_close(manifold.log(bp, p), exp)
+
     def test_pt():
         
     def test_inp():
         
-    def test_
     
