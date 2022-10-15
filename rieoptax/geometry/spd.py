@@ -76,6 +76,15 @@ class SPDAffineInvariant(SPDManifold):
         return exp
 
     def log(self, b_pt: Array, pt: Array) -> Array:
+        """Riemannian Logarithm map.
+
+        Args:
+            b_pt: base_point, a SPD matrix.
+            pt: tangent_vec, a SPD matrix.
+
+        Returns:
+            returns Log_{b_pt}(pt).
+        """
         powers = self.sqrt_neg_sqrt(b_pt)
         eigval, eigvec = jnp.linalg.eigh(powers[1] @ pt @ powers[1])
         middle_log = (jnp.log(eigval).reshape(1, -1) * eigvec) @ eigvec.T
@@ -112,16 +121,45 @@ class SPDLogEuclidean(SPDManifold):
         return self.expm(self.logm(b_pt) + log_bp)
 
     def log(self, b_pt: Array, pt: Array) -> Array:
+        """Riemannian Logarithm map.
+
+        Args:
+            b_pt: base_point, a SPD matrix.
+            pt: tangent_vec, a SPD matrix.
+
+        Returns:
+            returns Log_{b_pt}(pt).
+        """
         logm_bp = self.logm(b_pt)
         logm_p = self.logm(pt)
         return self.diff_expm(logm_bp, logm_p - logm_bp)
 
     def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
+        """Parallel Transport.
+
+        Args:
+            s_pt: start point, a SPD matrix.
+            e_pt: end point, a SPD matrix.
+            tv: tangent vector at start point, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
         logm_ep = self.logm(e_pt)
         tv = self.diff_logm(s_pt, tv)
         return self.diff_expm(logm_ep, tv)
 
     def inp(self, b_pt, tv_a: Array, tv_b: Array) -> float:
+        """Inner product between two tangent vectors at a point on manifold.
+
+        Args:
+            b_pt: base point, a SPD matrix.
+            tv_a: tangent vector at base point, a Symmetric matrix.
+            tv_b: tangent vector at base point, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
         de_a = self.diff_logm(b_pt, tv_a)
         de_b = self.diff_logm(b_pt, tv_b)
         return jnp.inner(de_a, de_b)
@@ -150,12 +188,31 @@ class SPDBuresWasserstein(SPDManifold):
         return b_pt + tv + lyp @ b_pt @ lyp
 
     def log(self, b_pt: Array, pt: Array) -> Array:
+        """Riemannian Logarithm map.
+
+        Args:
+            b_pt: base_point, a SPD matrix.
+            pt: tangent_vec, a SPD matrix.
+
+        Returns:
+            returns Log_{b_pt}(pt).
+        """
         powers = self.sqrt_neg_sqrt(b_pt)
         pdt = self.sqrt(powers[0] @ pt @ powers[0])
         sqrt_product = powers[0] @ pdt @ powers[1]
         return sqrt_product + sqrt_product.T - 2 * b_pt
 
     def inp(self, b_pt: Array, tv_a: Array, tv_b: Array) -> float:
+        """Inner product between two tangent vectors at a point on manifold.
+
+        Args:
+            b_pt: base point, a SPD matrix.
+            tv_a: tangent vector at base point, a Symmetric matrix.
+            tv_b: tangent vector at base point, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
         lyp = self.lyapunov(b_pt, tv)
         return 0.5 * self.trace_matprod(lyp, tv)
 
@@ -170,6 +227,19 @@ class SPDBuresWasserstein(SPDManifold):
 
 class SPDEuclidean(SPDManifold):
     def inp(self, b_pt: Array, tv_a: Array, tv_b: Array) -> Array:
+        """Inner product between two tangent vectors at a point on manifold.
+
+        Args:
+            b_pt: base point, a SPD matrix.
+            tv_a: tangent vector at base point, a Symmetric matrix.
+            tv_b: tangent vector at base point, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
+        return self.trace_matprod(tv_a, tv_b)
+
+    def exp(self, b_pt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
         
         Args:
@@ -179,12 +249,18 @@ class SPDEuclidean(SPDManifold):
         Returns:
             returns Exp_{b_pt}(tv).
         """
-        return self.trace_matprod(tv_a, tv_b)
-
-    def exp(self, b_pt: Array, tv: Array) -> Array:
         return b_pt + tv
 
     def log(self, b_pt: Array, pt: Array) -> Array:
+        """Riemannian Logarithm map.
+
+        Args:
+            b_pt: base_point, a SPD matrix.
+            pt: tangent_vec, a SPD matrix.
+
+        Returns:
+            returns Log_{b_pt}(pt).
+        """
         return pt - b_pt
 
     def egrad_to_rgrad(self, b_pt: Array, egrad: Array) -> Array:
