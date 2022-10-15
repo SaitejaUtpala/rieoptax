@@ -1,6 +1,27 @@
-@article{utpala2022rieoptax,
-  title={Rieoptax: Riemannian Optimization in JAX},
-  author={Utpala, Saiteja and Han, Andi and Jawanpuria, Pratik and Mishra, Bamdev},
-  journal={arXiv preprint arXiv:2210.04840},
-  year={2022}
-}
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Utpala"
+  given-names: "Saiteja"
+- family-names: "Han"
+  given-names: "Andi"
+- family-names: "Jawanpuria"
+  given-names: "Pratik"
+- family-names: "Mishra"
+  given-names: "Bamdev"
+title: "Rieoptax: Riemannian Optimization in JAX"
+url: "https://github.com/SaitejaUtpala/rieoptax"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Utpala"
+    given-names: "Saiteja"
+  - family-names: "Han"
+    given-names: "Andi"
+  - family-names: "Jawanpuria"
+    given-names: "Pratik"
+  - family-names: "Mishra"
+    given-names: "Bamdev"
+  journal: "arXiv preprint arXiv:2210.04840"
+  title: "Rieoptax: Riemannian Optimization in JAX"
+  year: 2022
