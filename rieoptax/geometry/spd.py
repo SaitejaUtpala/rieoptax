@@ -92,9 +92,29 @@ class SPDAffineInvariant(SPDManifold):
         return log
 
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> float:
+        """Inner product between two tangent vectors at a point on manifold.
+
+        Args:
+            bpt: point on the manifold, a SPD matrix.
+            tv_a: tangent vector at bpt, a Symmetric matrix.
+            tv_b: tangent vector at bpt, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
         pass
 
     def pt(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
+        """Parallel Transport.
+
+        Args:
+            s_pt: start point, a SPD matrix.
+            e_pt: end point, a SPD matrix.
+            tv: tangent vector at start point, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
         pass
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
@@ -112,6 +132,7 @@ class SPDAffineInvariant(SPDManifold):
         return dist
 
     def egrad_to_rgrad(self, egrad: Array, bpt: Array) -> Array:
+
         return bpt @ egrad @ bpt.T
 
 
@@ -162,9 +183,9 @@ class SPDLogEuclidean(SPDManifold):
         """Inner product between two tangent vectors at a point on manifold.
 
         Args:
-            bpt: base point, a SPD matrix.
-            tv_a: tangent vector at base point, a Symmetric matrix.
-            tv_b: tangent vector at base point, a Symmetric matrix.
+            bpt: point on the manifold, a SPD matrix.
+            tv_a: tangent vector at bpt, a Symmetric matrix.
+            tv_b: tangent vector at bpt, a Symmetric matrix.
 
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
@@ -224,9 +245,9 @@ class SPDBuresWasserstein(SPDManifold):
         """Inner product between two tangent vectors at a point on manifold.
 
         Args:
-            bpt: base point, a SPD matrix.
-            tv_a: tangent vector at base point, a Symmetric matrix.
-            tv_b: tangent vector at base point, a Symmetric matrix.
+            bpt: point on the manifold, a SPD matrix.
+            tv_a: tangent vector at bpt, a Symmetric matrix.
+            tv_b: tangent vector at bpt, a Symmetric matrix.
 
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
@@ -257,9 +278,9 @@ class SPDEuclidean(SPDManifold):
         """Inner product between two tangent vectors at a point on manifold.
 
         Args:
-            bpt: base point, a SPD matrix.
-            tv_a: tangent vector at base point, a Symmetric matrix.
-            tv_b: tangent vector at base point, a Symmetric matrix.
+            bpt: point on the manifold, a SPD matrix.
+            tv_a: tangent vector at bpt, a Symmetric matrix.
+            tv_b: tangent vector at bpt, a Symmetric matrix.
 
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
@@ -315,4 +336,14 @@ class SPDEuclidean(SPDManifold):
         return self.norm(pt_a - pt_b)
 
     def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
+        """Parallel Transport.
+
+        Args:
+            s_pt: start point, a SPD matrix.
+            e_pt: end point, a SPD matrix.
+            tv: tangent vector at start point, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
         return tv
