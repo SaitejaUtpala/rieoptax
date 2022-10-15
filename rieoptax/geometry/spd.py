@@ -12,20 +12,62 @@ from rieoptax.geometry.base import RiemannianManifold
 
 class SPDManifold(RiemannianManifold):
     def symmetrize(self, mat: Array) -> Array:
+        """Symmetrization of matrix.
+
+        Args:
+            mat: matrix.
+
+        Returns:
+            returns symmetrized version of mat.
+        """
         return (mat + mat.T) / 2
 
     def trace_matprod(self, mat_a: Array, mat_b: Array) -> float:
+        """Trace of Product of Two matrices.
+
+        Args:
+            mat_a: matrix.
+            mat_b: matrix.
+
+        Returns:
+            returns Trace[mat_a. mat_b].
+        """
         return jnp.einsum("ij,ij->", mat_a, mat_b)
 
     def logm(self, spd: Array) -> Array:
+        """Matrix Logarithm of spd matrix.
+
+        Args:
+            spd: SPD Matrix.
+
+        Returns:
+            returns matirx logarithm of sym.
+        """
         eigval, eigvec = jnp.linalg.eigh(spd)
         return (jnp.log(e_val).reshape(1, -1) * e_vec) @ e_vec.T
 
     def expm(self, sym: Array) -> Array:
+        """Matrix Exponential of Symmetric of matrix.
+
+        Args:
+            sym: symmetric matrix.
+
+        Returns:
+            returns matrix exponential of sym.
+        """
         e_val, e_vec = jnp.linalg.eigh(sym)
         return (jnp.exp(e_val).reshape(1, -1) * e_vec) @ e_vec.T
 
     def lyapunov(self, spd: Array, sym: Array) -> Array:
+        """Lyapunov Equation solver i.e., solve for  spd. X + X. spd = sym
+
+        Args:
+            spd: SPD matrix.
+            sym: Symmetric matrix.
+
+        Returns:
+            returns solution to Lyapunov.
+        """
         e_val, e_vec = gs.linalg.eigh(spd)
         pair_sum = e_val[:, None] + e_val[None, :]
         rotated = e_vec.T @ sym @ e_vec
@@ -118,7 +160,7 @@ class SPDAffineInvariant(SPDManifold):
         pass
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
-         """Distance between two points on the manifold induced by Riemannian metric.
+        """Distance between two points on the manifold induced by Riemannian metric.
 
         Args:
             pt_a: point on the manifold, a SPD matrix.
@@ -139,7 +181,7 @@ class SPDAffineInvariant(SPDManifold):
 class SPDLogEuclidean(SPDManifold):
     def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
-        
+
         Args:
             bpt: base_point, a SPD matrix.
             tv: tangent_vec, a Symmetric matrix.
@@ -195,7 +237,7 @@ class SPDLogEuclidean(SPDManifold):
         return jnp.inner(de_a, de_b)
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
-         """Distance between two points on the manifold induced by Riemannian metric.
+        """Distance between two points on the manifold induced by Riemannian metric.
 
         Args:
             pt_a: point on the manifold, a SPD matrix.
@@ -215,7 +257,7 @@ class SPDLogEuclidean(SPDManifold):
 class SPDBuresWasserstein(SPDManifold):
     def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
-        
+
         Args:
             bpt: base_point, a SPD matrix.
             tv: tangent_vec, a Symmetric matrix.
@@ -256,7 +298,7 @@ class SPDBuresWasserstein(SPDManifold):
         return 0.5 * self.trace_matprod(lyp, tv)
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
-         """Distance between two points on the manifold induced by Riemannian metric.
+        """Distance between two points on the manifold induced by Riemannian metric.
 
         Args:
             pt_a: point on the manifold, a SPD matrix.
@@ -289,7 +331,7 @@ class SPDEuclidean(SPDManifold):
 
     def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
-        
+
         Args:
             bpt: base_point, a SPD matrix.
             tv: tangent_vec, a Symmetric matrix.
