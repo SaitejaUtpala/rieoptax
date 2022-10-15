@@ -14,7 +14,7 @@ class SPDManifold(RiemannianManifold):
     def symmetrize(self, mat: Array) -> Array:
         return (mat + mat.T) / 2
 
-    def trace_mat_prod(self, mat_a: Array, mat_b: Array) -> float:
+    def trace_matprod(self, mat_a: Array, mat_b: Array) -> float:
         return jnp.einsum("ij,ij->", mat_a, mat_b)
 
     def logm(self, spd: Array) -> Array:
@@ -95,73 +95,73 @@ class SPDAffineInvariant(SPDManifold):
     
 class SPDLogEuclidean(SPDManifold):
     
-    def exp(self, b_pt, tv):
+    def exp(self, b_pt : Array, tv : Array) -> Array:
         log_bp = self.diff_logm(b_pt, tv)
         return self.expm(self.logm(b_pt) + log_bp )
         
-    def log(self, b_pt, pt):
+    def log(self, b_pt : Array, pt : Array) -> Array:
         logm_bp = self.logm(b_pt)
         logm_p = self.logm(pt) 
         return self.diff_expm(logm_bp, logm_p - logm_bp)
         
-    def pt(self, start_point, end_point, tv):
-        logm_ep = self.logm(end_point)
-        tv = self.diff_logm(start_point, tv)
+    def pt(self, s_pt : Array, e_pt : Array, tv : Array) -> Array:
+        logm_ep = self.logm(e_pt)
+        tv = self.diff_logm(s_pt, tv)
         return self.diff_expm(logm_ep, tv)    
     
-    def inp(self, b_pt, tangent_vec_a, tannget_vec_b):
-        de_a = self.diff_logm(b_pt, tangent_vec_a)
-        de_b = self.diff_logm(b_pt, tangent_vec_b)
+    def inp(self, b_pt, tv_a : Array, tv_b : Array) -> float:
+        de_a = self.diff_logm(b_pt, tv_a)
+        de_b = self.diff_logm(b_pt, tv_b)
         return jnp.inner(de_a, de_b)
     
-    def dist(self, pt_a, pt_b):
+    def dist(self, pt_a : Array, pt_b : Array) -> float:
         diff = self.logm(pt_a) - self.logm(pt_b)
         return self.norm(diff)
     
-    def norm(self, b_pt, tv):
+    def norm(self, b_pt : Array, tv : Array) -> float:
         norm = self.diff_logm(b_pt, tv)
         return self.norm(diff)
     
 class SPDBuresWasserstein(SPDManifold):
     
-    def exp(self, b_pt, tv):
+    def exp(self, b_pt: Array, tv : Array) -> Array:
         lyp = self.lyapunov(b_pt, tv)
         return b_pt + tv + lyp @ b_pt @ lyp
         
-    def log(self, b_pt, pt):
+    def log(self, b_pt : Array, pt : Array) -> Array:
         powers = self.sqrt_neg_sqrt(b_pt)
         pdt = self.sqrt(powers[0] @ pt @ powers[0])
         sqrt_product = powers[0] @ pdt @ powers[1]
         return sqrt_product + sqrt_product.T  - 2 * b_pt
     
-    def inp(self, b_pt, tangent_vec_a, tangent_vec_b):
+    def inp(self, b_pt : Array, tv_a : Array, tv_b : Array) -> float:
         lyp = self.lyapunov(b_pt, tv)
         return 0.5 * self.trace_matprod(lyp, tv)
         
-    def dist(self, pt_a, pt_b):
+    def dist(self, pt_a:Array, pt_b : Array) -> float:
         sqrt_a =  self.sqrt(pt_a)
         prod = self.sqrt(sqrt_a @ pt_b @ sqrt_a)
         return jnp.trace(pt_a) + jnp.trace(pt_b)-2*jnp.trace(prod)
         
-    def egrad_to_rgrad(self, b_pt, egrad):
+    def egrad_to_rgrad(self, b_pt : Array, egrad : Array) -> float:
         return 4*self.symmetrize(egrad @ b_pt)
         
 class SPDEuclidean(SPDManifold):
     
-    def inp(self, b_pt, tangent_vec_a, tangent_vec_b):
-        return self.trace_matprod(tangent_vec_a, tangent_vec_b)
+    def inp(self, b_pt : Array, tv_a : Array, tv_b : Array) -> Array:
+        return self.trace_matprod(tv_a, tv_b)
     
-    def exp(self, b_pt, tv):
+    def exp(self, b_pt : Array, tv : Array) -> Array:
         return b_pt + tv
    
-    def log(self, b_pt, pt) :
+    def log(self, b_pt : Array, pt : Array) -> Array :
         return pt-b_pt
         
-    def egrad_to_rgrad(self, b_pt, egrad):
+    def egrad_to_rgrad(self, b_pt : Array, egrad : Array) -> Array:
         return egrad 
     
-    def dist(self, pt_a, pt_b):
+    def dist(self, pt_a : Array, pt_b : Array) -> float:
         return self.norm(pt_a - pt_b)
     
-    def pt(self, start_point, end_point, tv):
+    def pt(self, s_pt: Array, e_pt : Array, tv : Array) ->Array:
         return tv
