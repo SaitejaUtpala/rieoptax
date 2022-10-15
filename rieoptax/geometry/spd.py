@@ -60,6 +60,15 @@ class SPDManifold(RiemannianManifold):
 
 class SPDAffineInvariant(SPDManifold):
     def exp(self, b_pt: Array, tv: Array) -> Array:
+        """Riemannian Exponential map.
+
+        Args:
+            b_pt: base_point, a SPD matrix.
+            tv: tangent_vec, a Symmetric matrix.
+
+        Returns:
+            returns Exp_{b_pt}(tv).
+        """
         powers = self.sqrt_neg_sqrt(b_pt)
         eigval, eigvec = jnp.linalg.eigh(powers[1] @ tv @ powers[1])
         m_exp = (jnp.exp(eigval).reshape(1, -1) * eigvec) @ eigvec.T
@@ -90,6 +99,15 @@ class SPDAffineInvariant(SPDManifold):
 
 class SPDLogEuclidean(SPDManifold):
     def exp(self, b_pt: Array, tv: Array) -> Array:
+        """Riemannian Exponential map.
+        
+        Args:
+            b_pt: base_point, a SPD matrix.
+            tv: tangent_vec, a Symmetric matrix.
+
+        Returns:
+            returns Exp_{b_pt}(tv).
+        """
         log_bp = self.diff_logm(b_pt, tv)
         return self.expm(self.logm(b_pt) + log_bp)
 
@@ -119,6 +137,15 @@ class SPDLogEuclidean(SPDManifold):
 
 class SPDBuresWasserstein(SPDManifold):
     def exp(self, b_pt: Array, tv: Array) -> Array:
+        """Riemannian Exponential map.
+        
+        Args:
+            b_pt: base_point, a SPD matrix.
+            tv: tangent_vec, a Symmetric matrix.
+
+        Returns:
+            returns Exp_{b_pt}(tv).
+        """
         lyp = self.lyapunov(b_pt, tv)
         return b_pt + tv + lyp @ b_pt @ lyp
 
@@ -143,6 +170,15 @@ class SPDBuresWasserstein(SPDManifold):
 
 class SPDEuclidean(SPDManifold):
     def inp(self, b_pt: Array, tv_a: Array, tv_b: Array) -> Array:
+        """Riemannian Exponential map.
+        
+        Args:
+            b_pt: base_point, a SPD matrix.
+            tv: tangent_vec, a Symmetric matrix.
+
+        Returns:
+            returns Exp_{b_pt}(tv).
+        """
         return self.trace_matprod(tv_a, tv_b)
 
     def exp(self, b_pt: Array, tv: Array) -> Array:
