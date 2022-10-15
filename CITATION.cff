@@ -1,0 +1,6 @@
+@article{utpala2022rieoptax,
+  title={Rieoptax: Riemannian Optimization in JAX},
+  author={Utpala, Saiteja and Han, Andi and Jawanpuria, Pratik and Mishra, Bamdev},
+  journal={arXiv preprint arXiv:2210.04840},
+  year={2022}
+}
