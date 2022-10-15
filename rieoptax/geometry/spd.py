@@ -47,7 +47,7 @@ class SPDManifold(RiemannianManifold):
         return (jnp.log(e_val).reshape(1, -1) * e_vec) @ e_vec.T
 
     def expm(self, sym: Array) -> Array:
-        """Matrix Exponential of Symmetric of matrix.
+        """Matrix Exponential of Symmetric matrix.
 
         Args:
             sym: symmetric matrix.
@@ -75,12 +75,32 @@ class SPDManifold(RiemannianManifold):
         return sol
 
     def sqrt_neg_sqrt(self, spd: Array) -> Array:
+        """Compute matrix square root and negative matrix square root.
+
+        Args:
+            spd: SPD matrix.
+
+        Returns:
+            returns result where result[0] contains square root and
+            result[1] contain negative square root.
+        """
         eigval, eigvec = jnp.linalg.eigh(spd[None])
         pow_eigval = jnp.stack([jnp.power(eigval, 0.5), jnp.power(eigval, -0.5)])
         result = (pow_eigval * eigvec) @ eigvec.swapaxes(1, 2)
         return result
 
     def diff_pow(self, spd: Array, sym: Array, power_fun: Callable) -> Array:
+        """Differential of SPD matrix power.
+
+        Args:
+            spd: point on the manifold, SPD matrix.
+            sym: tangent vector at base point, symmetric matrix.
+            power_fun: power function,
+
+        Returns:
+            returns differential of matrix power at base point spd and
+            evaluated at sym.
+        """
         e_val, e_vec = jnp.linalg.eigh(spd)
         pow_e_val = power_fun(e_val)
         deno = e_val[:, None] - e_val[None, :]
@@ -93,10 +113,30 @@ class SPDManifold(RiemannianManifold):
 
     @partial(jit, static_argnums=(0,))
     def diff_expm(self, bpt: Array, tv: Array) -> Array:
+        """Differential of matrix exponential.
+
+        Args:
+            spd: point on the manifold, SPD matrix.
+            sym: tangent vector at base point, symmetric matrix.
+
+        Returns:
+            returns differential of matrix exponential at base point 'spd'
+            and evaluated at 'sym'.
+        """
         return self.diff_pow(bpt, tv, jnp.exp)
 
     @partial(jit, static_argnums=(0,))
     def diff_logm(self, bpt: Array, tv: Array) -> Array:
+        """Differential of matrix logarithm.
+
+        Args:
+            spd: point on the manifold, SPD matrix.
+            sym: tangent vector at base point, symmetric matrix.
+
+        Returns:
+            returns differential of matrix logarithm at base point 'spd'
+            and evaluated at tangent vector 'sym'.
+        """
         return diff_pow(bpt, tv, jnp.log)
 
 
