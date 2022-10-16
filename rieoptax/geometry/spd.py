@@ -11,6 +11,10 @@ from rieoptax.geometry.base import RiemannianManifold
 
 
 class SPDManifold(RiemannianManifold):
+    def __int__(m):
+        self.m = m 
+        super().__int__()
+
     def symmetrize(self, mat: Array) -> Array:
         """Symmetrization of matrix.
 
@@ -91,12 +95,12 @@ class SPDManifold(RiemannianManifold):
 
     def sqrtm_ABinv(self, spd_a, spd_b):
         """Compute (spd_a. (spd_b)^{-1})^{1/2}.
-        Note : spd_a. (spd_b)^{-1} need not be SPD matrix.  
+        Note : spd_a. (spd_b)^{-1} need not be SPD matrix.
         Hence one cannot use eigen decomposition to compute matrix square root,
         and has to use 'sqrtm' rather which is not supported in GPUs currently.
-        Following routine employs clever manipulation in such a way square root 
-        is taken for a SPD matrix. This is used in Affine Invariant and Bures 
-        Wasserstein Metrics. 
+        Following routine employs clever manipulation in such a way square root
+        is taken for a SPD matrix. This is used in Affine Invariant and Bures
+        Wasserstein Metrics.
 
         Args:
             spd_a: SPD matrix.
@@ -106,8 +110,8 @@ class SPDManifold(RiemannianManifold):
             returns (spd_a. (spd_b)^{-1})^{1/2}.
         """
         powers = self.sqrt_neg_sqrt(spd_b)
-        powers[0] @ self.sqrtm(powers[1] @ spd_a @ powers[1]) @ powers[0]
-
+        ans = powers[0] @ self.sqrtm(powers[1] @ spd_a @ powers[1]) @ powers[0]
+        return ans
 
     def diff_pow(self, spd: Array, sym: Array, power_fun: Callable) -> Array:
         """Differential of SPD matrix power.
@@ -205,8 +209,7 @@ class SPDAffineInvariant(SPDManifold):
             returns PT_{s_pt ->e_pt}(tv).
         """
         bpt_inv = jnp.linalg.inv(bpt)
-        return self.trace_matprod(bpt_inv @ tv_a, bpt_inv @ tv_b )
-
+        return self.trace_matprod(bpt_inv @ tv_a, bpt_inv @ tv_b)
 
     def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
@@ -221,8 +224,8 @@ class SPDAffineInvariant(SPDManifold):
         """
         powers = self.sqrt_neg_sqrt(s_pt)
         middle = powers[0] @ self.sqrt(powers[1] @ e_pt @ powers[1]) @ powers[1]
-        pt = middle @ tv @ middle.T 
-        return pt 
+        pt = middle @ tv @ middle.T
+        return pt
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
         """Distance between two points on the manifold induced by Riemannian metric.
