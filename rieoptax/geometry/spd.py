@@ -99,8 +99,7 @@ class SPDManifold(RiemannianManifold):
         Hence one cannot use eigen decomposition to compute matrix square root,
         and has to use 'sqrtm' rather which is not supported in GPUs currently.
         Following routine employs clever manipulation in such a way square root
-        is taken for a SPD matrix. This is used in Affine Invariant and Bures
-        Wasserstein Metrics.
+        is taken for a SPD matrix. This is used in Affine Invariant Metric.
 
         Args:
             spd_a: SPD matrix.
@@ -110,7 +109,26 @@ class SPDManifold(RiemannianManifold):
             returns (spd_a. (spd_b)^{-1})^{1/2}.
         """
         powers = self.sqrt_neg_sqrt(spd_b)
-        ans = powers[0] @ self.sqrtm(powers[1] @ spd_a @ powers[1]) @ powers[0]
+        ans = powers[0] @ self.sqrtm(powers[1] @ spd_a @ powers[1]) @ powers[1]
+        return ans
+
+    def sqrtm_AB(self, spd_a, spd_b):
+        """Compute (spd_a. spd_b)^{1/2}.
+        Note : spd_a. spd_b need not be SPD matrix.
+        Hence one cannot use eigen decomposition to compute matrix square root,
+        and has to use 'sqrtm' rather which is not supported in GPUs currently.
+        Following routine employs clever manipulation in such a way square root
+        is taken for a SPD matrix. This is used in Bures Wasserstein Metric.
+
+        Args:
+            spd_a: SPD matrix.
+            spd_b: SPD matrix.
+
+        Returns:
+            returns (spd_a. spd_b)^{1/2}.
+        """
+        powers = self.sqrt_neg_sqrt(spd_b)
+        ans = powers[0] @ self.sqrtm(powers[0] @ spd_a @ powers[0]) @ powers[1]
         return ans
 
     def diff_pow(self, spd: Array, sym: Array, power_fun: Callable) -> Array:
@@ -222,9 +240,8 @@ class SPDAffineInvariant(SPDManifold):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        powers = self.sqrt_neg_sqrt(s_pt)
-        middle = powers[0] @ self.sqrt(powers[1] @ e_pt @ powers[1]) @ powers[1]
-        pt = middle @ tv @ middle.T
+        out = self.sqrtm_ABinv(e_pt, s_pt)
+        pt = out @ tv @ out.T
         return pt
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
@@ -346,9 +363,7 @@ class SPDBuresWasserstein(SPDManifold):
         Returns:
             returns Log_{bpt}(pt).
         """
-        powers = self.sqrt_neg_sqrt(bpt)
-        pdt = self.sqrt(powers[0] @ pt @ powers[0])
-        sqrt_product = powers[0] @ pdt @ powers[1]
+        sqrt_product = self.sqrtm_AB(pt, bpt)
         return sqrt_product + sqrt_product.T - 2 * bpt
 
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> float:
