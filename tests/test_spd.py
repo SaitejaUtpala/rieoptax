@@ -33,8 +33,17 @@ class TestSPDAffineInvarinat(absltest.TestCase):
         assert_trees_all_close(manifold.dist(p_a, p_b), exp)
 
     def test_pt():
+        p_a =jnp.array([[1.0, 0.0], [0.0, 1.0]])
+        p_b = jnp.array([[2.0, 0], [0.0, 2.0]])
+        tv = jnp.array([[0.0, 5], [5, 0.0]])
+        exp = jnp.array([[0, 10], [10, 0]])
+        assert_trees_all_close(manifold.pt(p_a, p_b, tv), exp)
 
 
     def test_egrad_to_rgrad():
+        egrad = jnp.array([[2.0, 3.0], [3.0, 4.0]])
+        bp = jnp.array([[2.0, 0.0], [0.0, 4.0]])
+        exp = jnp.array([[8, 24], [24, 64]])
+        assert_trees_all_close(manifold.egrad_to_rgrad(egrad, bp), exp)                
         
     

@@ -8,11 +8,10 @@ from jax import numpy as jnp
 from jax import vmap
 
 from rieoptax.geometry.base import RiemannianManifold
+from abc import ABC
 
-
-class SPDManifold(RiemannianManifold):
+class SPDManifold(ABC, RiemannianManifold):
     
-
     def symmetrize(self, mat: Array) -> Array:
         """Symmetrization of matrix.
 
@@ -219,7 +218,7 @@ class SPDManifold(RiemannianManifold):
 
 
 class SPDAffineInvariant(SPDManifold):
-    def __int__(m):
+    def __int__(self, m):
         self.m = m
         super().__int__()
 
@@ -304,7 +303,7 @@ class SPDAffineInvariant(SPDManifold):
 
 
 class SPDLogEuclidean(SPDManifold):
-    def __int__(m):
+    def __int__(self, m):
         self.m = m
         super().__int__()
 
@@ -384,7 +383,7 @@ class SPDLogEuclidean(SPDManifold):
 
 
 class SPDBuresWasserstein(SPDManifold):
-    def __int__(m):
+    def __int__(self, m):
         self.m = m
         super().__int__()
 
@@ -447,7 +446,7 @@ class SPDBuresWasserstein(SPDManifold):
 
 
 class SPDEuclidean(SPDManifold):
-    def __int__(m):
+    def __int__(self, m):
         self.m = m
         super().__int__()
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
