@@ -22,4 +22,8 @@ class TestSPDAffineInvarinat(absltest.TestCase):
         
     def test_inp():
         
+    def test_dist():
+
+    def test_egrad_to_rgrad():
+        
     
