@@ -412,8 +412,8 @@ class SPDBuresWasserstein(SPDManifold):
         Returns:
             returns distance between pt_a, pt_b.
         """
-        sqrt_a = self.sqrt(pt_a)
-        prod = self.sqrt(sqrt_a @ pt_b @ sqrt_a)
+        sqrt_a = self.sqrtm(pt_a)
+        prod = self.sqrtm(sqrt_a @ pt_b @ sqrt_a)
         return jnp.trace(pt_a) + jnp.trace(pt_b) - 2 * jnp.trace(prod)
 
     def egrad_to_rgrad(self, bpt: Array, egrad: Array) -> float:
