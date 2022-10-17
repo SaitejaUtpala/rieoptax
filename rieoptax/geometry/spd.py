@@ -10,7 +10,7 @@ from jax import vmap
 from rieoptax.geometry.base import RiemannianManifold
 from abc import ABC
 
-class SPDManifold(ABC, RiemannianManifold):
+class SPDManifold(RiemannianManifold):
     
     def symmetrize(self, mat: Array) -> Array:
         """Symmetrization of matrix.
