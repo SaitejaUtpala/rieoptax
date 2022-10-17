@@ -16,12 +16,19 @@ jobs:
         python-version: ["3.7", "3.8", "3.9"]
         os: [ubuntu-latest]
 
-    - name: install dependencies [pip]
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v1"
+        with:
+            python-version: "${{ matrix.python-version }}"
+
+      - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
           pip install -e .[test]
 
-    - name: unit testing [pytest]
+      - name: unit testing [pytest]
         run: |
-          pytest  ${{matrix.test-folder}}
+          pytest tests/
+
         
