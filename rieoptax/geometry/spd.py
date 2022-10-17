@@ -92,8 +92,8 @@ class SPDManifold(RiemannianManifold):
         Returns:
             return matrix negative square root of 'spd'.
         """
-        sqrt = partial(jnp.power, x2=-0.5)
-        return self.powm(spd, sqrt)
+        neg_sqrt = partial(jnp.power, x2=-0.5)
+        return self.powm(spd, neg_sqrt)
 
     def sqrtm_neg_sqrtm(self, spd: Array) -> Array:
         """Compute matrix square root and negative matrix square root.
