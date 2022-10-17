@@ -12,7 +12,7 @@ from rieoptax.geometry.base import RiemannianManifold
 
 class SPDManifold(RiemannianManifold):
     def __int__(m):
-        self.m = m 
+        self.m = m
         super().__int__()
 
     def symmetrize(self, mat: Array) -> Array:
@@ -38,6 +38,19 @@ class SPDManifold(RiemannianManifold):
         """
         return jnp.einsum("ij,ij->", mat_a, mat_b)
 
+    def powm(self, spd: Array, pow_fun: Callable) -> Array:
+        """Matrix power of spd matrix.
+
+        Args :
+            spd : SPD Matrix.
+            pow_fun : power function to be applied to eigen values.
+
+        Retuns :
+            returns matrix power of spd.
+        """
+        e_val, e_vec = jnp.linalg.eigh(spd)
+        return (pow_fun(e_val).reshape(1, -1) * e_vec) @ e_vec.T
+
     def logm(self, spd: Array) -> Array:
         """Matrix Logarithm of spd matrix.
 
@@ -45,10 +58,9 @@ class SPDManifold(RiemannianManifold):
             spd: SPD Matrix.
 
         Returns:
-            returns matirx logarithm of sym.
+            returns matirx logarithm of spd.
         """
-        eigval, eigvec = jnp.linalg.eigh(spd)
-        return (jnp.log(e_val).reshape(1, -1) * e_vec) @ e_vec.T
+        return powm(spd, jnp.log)
 
     def expm(self, sym: Array) -> Array:
         """Matrix Exponential of Symmetric matrix.
@@ -59,27 +71,21 @@ class SPDManifold(RiemannianManifold):
         Returns:
             returns matrix exponential of sym.
         """
-        e_val, e_vec = jnp.linalg.eigh(sym)
-        return (jnp.exp(e_val).reshape(1, -1) * e_vec) @ e_vec.T
+        return powm(spd, jnp.exp)
 
-    def lyapunov(self, spd: Array, sym: Array) -> Array:
-        """Lyapunov Equation solver i.e., solve for  spd. X + X. spd = sym
+    def sqrtm(self, spd: Array) -> Array:
+        sqrt = partial(jnp.power, x2=0.5)
+        return powm(spd, sqrt)
 
-        Args:
-            spd: SPD matrix.
-            sym: Symmetric matrix.
+    def neg_sqrtm(self, spd: Array) -> Array:
+        sqrt = partial(jnp.power, x2=-0.5)
+        return powm(spd, sqrt)
 
-        Returns:
-            returns solution to Lyapunov.
-        """
-        e_val, e_vec = gs.linalg.eigh(spd)
-        pair_sum = e_val[:, None] + e_val[None, :]
-        rotated = e_vec.T @ sym @ e_vec
-        sol = e_vec @ (rotated / pair_sum) @ e_vec.T
-        return sol
-
-    def sqrt_neg_sqrt(self, spd: Array) -> Array:
+    def sqrtm_neg_sqrtm(self, spd: Array) -> Array:
         """Compute matrix square root and negative matrix square root.
+        Note : This computes matrix square root and negative square root
+        in one go by using just single eigen decomposition and hence faster
+        than caller than 'sqrtm' and 'neg_sqrtm'.
 
         Args:
             spd: SPD matrix.
@@ -92,44 +98,6 @@ class SPDManifold(RiemannianManifold):
         pow_eigval = jnp.stack([jnp.power(eigval, 0.5), jnp.power(eigval, -0.5)])
         result = (pow_eigval * eigvec) @ eigvec.swapaxes(1, 2)
         return result
-
-    def sqrtm_ABinv(self, spd_a, spd_b):
-        """Compute (spd_a. (spd_b)^{-1})^{1/2}.
-        Note : spd_a. (spd_b)^{-1} need not be SPD matrix.
-        Hence one cannot use eigen decomposition to compute matrix square root,
-        and has to use 'sqrtm' rather which is not supported in GPUs currently.
-        Following routine employs clever manipulation in such a way square root
-        is taken for a SPD matrix. This is used in Affine Invariant Metric.
-
-        Args:
-            spd_a: SPD matrix.
-            spd_b: SPD matrix.
-
-        Returns:
-            returns (spd_a. (spd_b)^{-1})^{1/2}.
-        """
-        powers = self.sqrt_neg_sqrt(spd_b)
-        ans = powers[0] @ self.sqrtm(powers[1] @ spd_a @ powers[1]) @ powers[1]
-        return ans
-
-    def sqrtm_AB(self, spd_a, spd_b):
-        """Compute (spd_a. spd_b)^{1/2}.
-        Note : spd_a. spd_b need not be SPD matrix.
-        Hence one cannot use eigen decomposition to compute matrix square root,
-        and has to use 'sqrtm' rather which is not supported in GPUs currently.
-        Following routine employs clever manipulation in such a way square root
-        is taken for a SPD matrix. This is used in Bures Wasserstein Metric.
-
-        Args:
-            spd_a: SPD matrix.
-            spd_b: SPD matrix.
-
-        Returns:
-            returns (spd_a. spd_b)^{1/2}.
-        """
-        powers = self.sqrt_neg_sqrt(spd_b)
-        ans = powers[0] @ self.sqrtm(powers[0] @ spd_a @ powers[0]) @ powers[1]
-        return ans
 
     def diff_pow(self, spd: Array, sym: Array, power_fun: Callable) -> Array:
         """Differential of SPD matrix power.
@@ -181,6 +149,60 @@ class SPDManifold(RiemannianManifold):
         """
         return diff_pow(bpt, tv, jnp.log)
 
+    def lyapunov(self, spd: Array, sym: Array) -> Array:
+        """Lyapunov Equation solver i.e., solve for  spd. X + X. spd = sym
+
+        Args:
+            spd: SPD matrix.
+            sym: Symmetric matrix.
+
+        Returns:
+            returns solution to Lyapunov.
+        """
+        e_val, e_vec = gs.linalg.eigh(spd)
+        pair_sum = e_val[:, None] + e_val[None, :]
+        rotated = e_vec.T @ sym @ e_vec
+        sol = e_vec @ (rotated / pair_sum) @ e_vec.T
+        return sol
+
+    def sqrtm_ABinv(self, spd_a, spd_b):
+        """Compute (spd_a. (spd_b)^{-1})^{1/2}.
+        Note : spd_a. (spd_b)^{-1} need not be SPD matrix.
+        Hence one cannot use eigen decomposition to compute matrix square root,
+        and has to use 'sqrtm' rather which is not supported in GPUs currently.
+        Following routine employs clever manipulation in such a way square root
+        is taken for a SPD matrix. This is used in Affine Invariant Metric.
+
+        Args:
+            spd_a: SPD matrix.
+            spd_b: SPD matrix.
+
+        Returns:
+            returns (spd_a. (spd_b)^{-1})^{1/2}.
+        """
+        powers = self.sqrtm_neg_sqrtm(spd_b)
+        ans = powers[0] @ self.sqrtm(powers[1] @ spd_a @ powers[1]) @ powers[1]
+        return ans
+
+    def sqrtm_AB(self, spd_a, spd_b):
+        """Compute (spd_a. spd_b)^{1/2}.
+        Note : spd_a. spd_b need not be SPD matrix.
+        Hence one cannot use eigen decomposition to compute matrix square root,
+        and has to use 'sqrtm' rather which is not supported in GPUs currently.
+        Following routine employs clever manipulation in such a way square root
+        is taken for a SPD matrix. This is used in Bures Wasserstein Metric.
+
+        Args:
+            spd_a: SPD matrix.
+            spd_b: SPD matrix.
+
+        Returns:
+            returns (spd_a. spd_b)^{1/2}.
+        """
+        powers = self.sqrtm_neg_sqrtm(spd_b)
+        ans = powers[0] @ self.sqrtm(powers[0] @ spd_a @ powers[0]) @ powers[1]
+        return ans
+
 
 class SPDAffineInvariant(SPDManifold):
     def exp(self, bpt: Array, tv: Array) -> Array:
@@ -193,7 +215,7 @@ class SPDAffineInvariant(SPDManifold):
         Returns:
             returns Exp_{bpt}(tv).
         """
-        powers = self.sqrt_neg_sqrt(bpt)
+        powers = self.sqrtm_neg_sqrtm(bpt)
         eigval, eigvec = jnp.linalg.eigh(powers[1] @ tv @ powers[1])
         m_exp = (jnp.exp(eigval).reshape(1, -1) * eigvec) @ eigvec.T
         exp = powers[0] @ m_exp @ powers[0]
@@ -209,7 +231,7 @@ class SPDAffineInvariant(SPDManifold):
         Returns:
             returns Log_{bpt}(pt).
         """
-        powers = self.sqrt_neg_sqrt(bpt)
+        powers = self.sqrtm_neg_sqrtm(bpt)
         eigval, eigvec = jnp.linalg.eigh(powers[1] @ pt @ powers[1])
         middle_log = (jnp.log(eigval).reshape(1, -1) * eigvec) @ eigvec.T
         log = powers[0] @ middle_log @ powers[0]
