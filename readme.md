@@ -1,6 +1,6 @@
 # Rieoptax
 ### Project is in Beta stage with active development and API is subject to change.
-![CI status](https://github.com/saitejautpala/rieoptax/workflows/test.yml/badge.svg)
+![CI status](https://github.com/saitejautpala/rieoptax/actions/workflows/test.yml/badge.svg)
 
 ## Introduction
 
