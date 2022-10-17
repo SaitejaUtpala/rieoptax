@@ -218,9 +218,9 @@ class SPDManifold(RiemannianManifold):
 
 
 class SPDAffineInvariant(SPDManifold):
-    def __int__(self, m):
+    def __init__(self, m):
         self.m = m
-        super().__int__()
+        super().__init__()
 
     def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
@@ -303,9 +303,9 @@ class SPDAffineInvariant(SPDManifold):
 
 
 class SPDLogEuclidean(SPDManifold):
-    def __int__(self, m):
+    def __init__(self, m):
         self.m = m
-        super().__int__()
+        super().__init__()
 
     def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
@@ -383,9 +383,9 @@ class SPDLogEuclidean(SPDManifold):
 
 
 class SPDBuresWasserstein(SPDManifold):
-    def __int__(self, m):
+    def __init__(self, m):
         self.m = m
-        super().__int__()
+        super().__init__()
 
     def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
@@ -446,9 +446,9 @@ class SPDBuresWasserstein(SPDManifold):
 
 
 class SPDEuclidean(SPDManifold):
-    def __int__(self, m):
+    def __init__(self, m):
         self.m = m
-        super().__int__()
+        super().__init__()
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
         """Inner product between two tangent vectors at a point on manifold.
 
