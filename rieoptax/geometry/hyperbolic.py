@@ -55,12 +55,30 @@ class PoincareBall(Hyperbolic):
         return cf
 
     def exp(self, tv : Array, bpt : Array) -> Array:
+        """Riemannian Exponential map.
+
+        Args:
+            bpt: base_point, a SPD matrix.
+            tv: tangent_vec, a Symmetric matrix.
+
+        Returns:
+            returns Exp_{bpt}(tv).
+        """
         t = jnp.sqrt(jnp.abs(self.curv)) * jnp.norm(tv)
         pt = (jnp.tanh(t / 2 * self.conformal_factor(bpt)) / t) * t
         exp = self.mobius_addition(bpt, pt)
         return exp
 
     def log(self, bpt: Array, pt: Array) -> Array:
+        """Riemannian Logarithm map.
+
+        Args:
+            bpt: base_point, a SPD matrix.
+            pt: tangent_vec, a SPD matrix.
+
+        Returns:
+            returns Log_{bpt}(pt).
+        """
         ma = self.mobius_addition(-1 * bpt, pt)
         abs_sqrt_curv = jnp.sqrt(jnp.abs(self.curv))
         norm_ma = jnp.norm(ma)
@@ -77,6 +95,16 @@ class PoincareBall(Hyperbolic):
         return metric
 
     def parallel_transport(self, start_point, end_point, tv):
+        """Parallel Transport.
+
+        Args:
+            s_pt: start point, a SPD matrix.
+            e_pt: end point, a SPD matrix.
+            tv: tangent vector at start point, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
         self.conformal_factor(start_point)
         self.conformal_facotr(end_point)
         pt = self.gyration_operator(end_point, -1 * start_point, tv)
@@ -114,17 +142,45 @@ class LorentzHyperboloid(Hyperbolic):
         return dist
     
     def exp(self, bpt, tv):
+        """Riemannian Exponential map.
+
+        Args:
+            bpt: base_point, a SPD matrix.
+            tv: tangent_vec, a Symmetric matrix.
+
+        Returns:
+            returns Exp_{bpt}(tv).
+        """
         tv_ln = jnp.sqrt(self.lorentz_inner(tv, tv)* jnp.abs(self.curv))
         exp = jnp.cosh(tv_ln) * bpt + (jnp.sinh(tv_ln) / tv_ln) * tv
         return exp
 
     def log(self, bpt, pt):
+        """Riemannian Logarithm map.
+
+        Args:
+            bpt: base_point, a SPD matrix.
+            pt: tangent_vec, a SPD matrix.
+
+        Returns:
+            returns Log_{bpt}(pt).
+        """
         k_xy = self.curv * self.lorentz_inner(bpt, pt)
         arccosh_k_xy = jnp.arccosh(k_xy)
         log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy) ) *(pt - (k_xy * bpt))
         return log
 
     def parallel_transport(self, start_point, end_point, tv):
+        """Parallel Transport.
+
+        Args:
+            s_pt: start point, a SPD matrix.
+            e_pt: end point, a SPD matrix.
+            tv: tangent vector at start point, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
         k_yv = self.curv * self.loretnz_inner(end_point, tv)
         k_xy = self.curv * self.loretnz_inner(start_point, end_point)
         pt = tv - (k_yv / k_xy)(start_point + end_point)
