@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 from functools import partial
-from rieoptax.geometry.base import RiemannianManifold
 
+from chex import Array
 from jax import jit
 from jax import numpy as jnp
 from jax import vmap
+
+from rieoptax.geometry.base import RiemannianManifold
 
 
 class Hyperbolic(RiemannianManifold):
@@ -12,69 +14,78 @@ class Hyperbolic(RiemannianManifold):
 
 
 class PoincareBall(Hyperbolic):
-    def __init__(self, dim, curvature):
+    def __init__(self, dim, curv=-1):
         self.dim = dim
-        self.curvature = curvature
+        self.curv = curv
 
-    def mobius_addition(self, point_a, point_b):
-        inp = jnp.dot(point_a, point_b)
-        b_norm = jnp.norm(point_b) ** 2
-        a_norm = jnp.norm(point_a) ** 2
+    def mobius_addition(self, pt_a : Array, pt_b : Array)-> Array:
+        """_summary_
+
+        Args:
+            pt_a (_type_): _description_
+            pt_b (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        inp = jnp.dot(pt_a, pt_b)
+        b_norm = jnp.norm(pt_b) ** 2
+        a_norm = jnp.norm(pt_a) ** 2
 
         numerator = (
-            1 - 2 * self.curvature * inp - self.curvature * b_norm
-        ) * point_a + (1 + self.curvature * a_norm) * point_b
-        denominator = 1 - 2 * self.curvature + self.curvature**2 * b_norm * a_norm
+            1 - 2 * self.curv * inp - self.curv * b_norm
+        ) * pt_a + (1 + self.curv * a_norm) * pt_b
+        denominator = 1 - 2 * self.curv + self.curv**2 * b_norm * a_norm
         ma = numerator / denominator
         return ma
 
-    def mobius_subtraction(self, point_a, point_b):
-        ms = self.mobius_addition(point_a, -1 * point_b)
+    def mobius_subtraction(self, pt_a : Array, pt_b : Array)->Array:
+        ms = self.mobius_addition(pt_a, -1 * pt_b)
         return ms
 
-    def gyration_operator(self, point_a, point_b, vec):
-        gb = self.mobius_addition(point_b, vec)
-        ggb = self.mobius_addition(point_b, gb)
-        gab = self.mobius_addition(point_a, point_b)
+    def gyration_operator(self, pt_a: Array, pt_b: Array, vec : Array) -> Array:
+        gb = self.mobius_addition(pt_b, vec)
+        ggb = self.mobius_addition(pt_b, gb)
+        gab = self.mobius_addition(pt_a, pt_b)
         return -1 * self.mobius_addition(gab, ggb)
 
-    def conformal_factor(self, point):
-        cp_norm = self.curvature * jnp.norm(point) ** 2
+    def conformal_factor(self, pt : Array) -> float:
+        cp_norm = self.curv * jnp.norm(pt) ** 2
         cf = 2 / (1 + cp_norm)
         return cf
 
-    def exp(self, tangent_vec, base_point):
-        t = jnp.sqrt(jnp.abs(self.curvature)) * jnp.norm(tangent_vec)
-        point = (jnp.tanh(t / 2 * self.conformal_factor(base_point)) / t) * t
-        exp = self.mobius_addition(base_point, point)
+    def exp(self, tv : Array, bpt : Array) -> Array:
+        t = jnp.sqrt(jnp.abs(self.curv)) * jnp.norm(tv)
+        pt = (jnp.tanh(t / 2 * self.conformal_factor(bpt)) / t) * t
+        exp = self.mobius_addition(bpt, pt)
         return exp
 
-    def log(self, base_point, point):
-        ma = self.mobius_addition(-1 * base_point, point)
-        abs_sqrt_curv = jnp.sqrt(jnp.abs(self.curvature))
+    def log(self, bpt: Array, pt: Array) -> Array:
+        ma = self.mobius_addition(-1 * bpt, pt)
+        abs_sqrt_curv = jnp.sqrt(jnp.abs(self.curv))
         norm_ma = jnp.norm(ma)
-        mul = (2 / (abs_sqrt_curv * self.conformal_factor(base_point))) * jnp.arctanh(
+        mul = (2 / (abs_sqrt_curv * self.conformal_factor(bpt))) * jnp.arctanh(
             abs_sqrt_curv * norm_ma
         )
         log = mul * (ma / norm_ma)
         return log
 
-    def metric(self, base_point, tangent_vec_a, tangent_vec_b):
-        metric = self.conformal_factor(base_point) * jnp.inp(
+    def metric(self, bpt, tangent_vec_a, tangent_vec_b):
+        metric = self.conformal_factor(bpt) * jnp.inp(
             tangent_vec_a, tangent_vec_b
         )
         return metric
 
-    def parallel_transport(self, start_point, end_point, tangent_vec):
+    def parallel_transport(self, start_point, end_point, tv):
         self.conformal_factor(start_point)
         self.conformal_facotr(end_point)
-        pt = self.gyration_operator(end_point, -1 * start_point, tangent_vec)
+        pt = self.gyration_operator(end_point, -1 * start_point, tv)
         return pt
 
-    def dist(self, point_a, point_b):
-        t = (2 * self.curv * jnp.norm(point_a - point_b) ** 2) / (
-            (1 + self.curv * jnp.inner(point_a) ** 2)(
-                1 + self.curv * jnp.inner(point_b) ** 2
+    def dist(self, pt_a, pt_b):
+        t = (2 * self.curv * jnp.norm(pt_a - pt_b) ** 2) / (
+            (1 + self.curv * jnp.inner(pt_a) ** 2)(
+                1 + self.curv * jnp.inner(pt_b) ** 2
             )
         )
         dist = jnp.arccosh(1 - t) / (jnp.sqrt(jnp.abs(self.curv)))
@@ -83,7 +94,7 @@ class PoincareBall(Hyperbolic):
         pass 
 
 
-class LorentzHyperboloid(RiemannianManifold):
+class LorentzHyperboloid(Hyperbolic):
     def __init__(self, m, curv=-1):
         self.m = m
         self.curv = curv
@@ -93,30 +104,30 @@ class LorentzHyperboloid(RiemannianManifold):
         lip = jnp.inner(x, y) - 2* x[0] * y[0]
         return lip
 
-    def inner_product(self, base_point, tangent_vec_a, tangent_vec_b):
+    def inner_product(self, bpt, tangent_vec_a, tangent_vec_b):
         return self.lorentz_inner(tangent_vec_a, tangent_vec_b)
 
-    def dist(self, point_a, point_b):
-        dist = jnp.arccosh(self.curv * self.lorentz_inner(point_a, point_b)) / (
-            jnp.sqrt(self.curvature)
+    def dist(self, pt_a, pt_b):
+        dist = jnp.arccosh(self.curv * self.lorentz_inner(pt_a, pt_b)) / (
+            jnp.sqrt(self.curv)
         )
         return dist
     
-    def exp(self, base_point, tangent_vec):
-        tv_ln = jnp.sqrt(self.lorentz_inner(tangent_vec, tangent_vec)* jnp.abs(self.curv))
-        exp = jnp.cosh(tv_ln) * base_point + (jnp.sinh(tv_ln) / tv_ln) * tangent_vec
+    def exp(self, bpt, tv):
+        tv_ln = jnp.sqrt(self.lorentz_inner(tv, tv)* jnp.abs(self.curv))
+        exp = jnp.cosh(tv_ln) * bpt + (jnp.sinh(tv_ln) / tv_ln) * tv
         return exp
 
-    def log(self, base_point, point):
-        k_xy = self.curv * self.lorentz_inner(base_point, point)
+    def log(self, bpt, pt):
+        k_xy = self.curv * self.lorentz_inner(bpt, pt)
         arccosh_k_xy = jnp.arccosh(k_xy)
-        log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy) ) *(point - (k_xy * base_point))
+        log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy) ) *(pt - (k_xy * bpt))
         return log
 
-    def parallel_transport(self, start_point, end_point, tangent_vec):
-        k_yv = self.curv * self.loretnz_inner(end_point, tangent_vec)
+    def parallel_transport(self, start_point, end_point, tv):
+        k_yv = self.curv * self.loretnz_inner(end_point, tv)
         k_xy = self.curv * self.loretnz_inner(start_point, end_point)
-        pt = v - (k_yv / k_xy)(start_point + end_point)
+        pt = tv - (k_yv / k_xy)(start_point + end_point)
         return pt
 
     def tangent_gaussian(self, sigma):
