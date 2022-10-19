@@ -11,7 +11,6 @@ from rieoptax.geometry.base import RiemannianManifold
 
 
 class SPDManifold(RiemannianManifold):
-    
     def symmetrize(self, mat: Array) -> Array:
         """Symmetrization of matrix.
 
@@ -177,14 +176,14 @@ class SPDManifold(RiemannianManifold):
         rotated = e_vec.T @ sym @ e_vec
         sol = e_vec @ (rotated / pair_sum) @ e_vec.T
         return sol
-    
+
     def generalized_lyapunov(self, spd_a: Array, spd_b: Array, sym: Array) -> Array:
-        """Generalized Lyapunov equation solver, i.e., 
+        """Generalized Lyapunov equation solver, i.e.,
         solver for spd_a. X. spd_b + spd_b. X. spd_a = sym.
         Note : Generalized lyapunov equation can be reduced to
-        lyapunov equation solver. This is used in Generalized 
+        lyapunov equation solver. This is used in Generalized
         Bures Wasserstein metric.
-        
+
         Args:
             spd_a: SPD matrix.
             spd_b: SPD matrix.
@@ -198,7 +197,6 @@ class SPDManifold(RiemannianManifold):
         ahalf = self.sqrtm(spd_a)
         L = self.lyapunov(ahalfinv @ spd_b @ ahalfinv, ahalfinv @ sym @ ahalfinv)
         return ahalf @ L @ ahalf
-        
 
     def sqrtm_ABinv(self, spd_a, spd_b):
         """Compute (spd_a. (spd_b)^{-1})^{1/2}.
@@ -446,8 +444,8 @@ class SPDBuresWasserstein(SPDManifold):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        lyp = self.lyapunov(bpt, tv)
-        return 0.5 * self.trace_matprod(lyp, tv)
+        lyp = self.lyapunov(bpt, tv_a)
+        return 0.5 * self.trace_matprod(lyp, tv_b)
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
         """Distance between two points on the manifold induced by Riemannian metric.
@@ -466,8 +464,7 @@ class SPDBuresWasserstein(SPDManifold):
     def egrad_to_rgrad(self, bpt: Array, egrad: Array) -> float:
         return 4 * self.symmetrize(egrad @ bpt)
 
-    
-    
+
 class SPDGeneralizedBuresWasserstein(SPDManifold):
     def __init__(self, m, M):
         self.m = m
@@ -497,7 +494,9 @@ class SPDGeneralizedBuresWasserstein(SPDManifold):
         Returns:
             returns Log_{bpt}(pt).
         """
-        Minv = self.powm(self.M, partial(jnp.power, x2=-1)) # can be stored to avoid recomputing
+        Minv = self.powm(
+            self.M, partial(jnp.power, x2=-1)
+        ) 
         sqrt_product = self.sqrtm_AB(Minv @ bpt @ Minv, pt)
         return self.M @ sqrt_product + sqrt_product.T @ self.M - 2 * bpt
 
@@ -528,17 +527,21 @@ class SPDGeneralizedBuresWasserstein(SPDManifold):
         Minv = self.powm(self.M, partial(jnp.power, x2=-1))
         sqrt_a = self.sqrtm(pt_a)
         prod = self.sqrtm(sqrt_a @ Minv @ pt_b @ Minv @ sqrt_a)
-        return self.trace_matprod(Minv, pt_a) + self.trace_matprod(Minv, pt_b) - 2 * jnp.trace(prod)
+        return (
+            self.trace_matprod(Minv, pt_a)
+            + self.trace_matprod(Minv, pt_b)
+            - 2 * jnp.trace(prod)
+        )
 
     def egrad_to_rgrad(self, bpt: Array, egrad: Array) -> float:
-        return 4 * self.symmetrize(self.M @ egrad @ bpt)    
+        return 4 * self.symmetrize(self.M @ egrad @ bpt)
 
 
 class SPDEuclidean(SPDManifold):
     def __init__(self, m):
         self.m = m
         super().__init__()
-        
+
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
         """Inner product between two tangent vectors at a point on manifold.
 
