@@ -68,7 +68,7 @@ class SPDManifold(RiemannianManifold):
         Returns:
             returns matrix exponential of sym.
         """
-        return self.powm(spd, jnp.exp)
+        return self.powm(sym, jnp.exp)
 
     def sqrtm(self, spd: Array) -> Array:
         """Matrix square root of SPD matrix.
