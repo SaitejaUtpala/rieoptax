@@ -94,20 +94,20 @@ class PoincareBall(Hyperbolic):
         )
         return metric
 
-    def parallel_transport(self, start_point, end_point, tv):
+    def parallel_transport(self, s_pt, e_pt, tv):
         """Parallel Transport.
 
         Args:
-            s_pt: start point, a SPD matrix.
-            e_pt: end point, a SPD matrix.
-            tv: tangent vector at start point, a Symmetric matrix.
+            s_pt: start poin.
+            e_pt: end point.
+            tv: tangent vector at start point.
 
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        self.conformal_factor(start_point)
-        self.conformal_facotr(end_point)
-        pt = self.gyration_operator(end_point, -1 * start_point, tv)
+        self.conformal_factor(s_pt)
+        self.conformal_facotr(e_pt)
+        pt = self.gyration_operator(e_pt, -1 * s_pt, tv)
         return pt
 
     def dist(self, pt_a, pt_b):
@@ -132,7 +132,7 @@ class LorentzHyperboloid(Hyperbolic):
         lip = jnp.inner(x, y) - 2* x[0] * y[0]
         return lip
 
-    def inner_product(self, bpt, tangent_vec_a, tangent_vec_b):
+    def inp(self, bpt, tangent_vec_a, tangent_vec_b):
         return self.lorentz_inner(tangent_vec_a, tangent_vec_b)
 
     def dist(self, pt_a, pt_b):
@@ -170,7 +170,7 @@ class LorentzHyperboloid(Hyperbolic):
         log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy) ) *(pt - (k_xy * bpt))
         return log
 
-    def parallel_transport(self, start_point, end_point, tv):
+    def parallel_transport(self, s_pt, e_pt, tv):
         """Parallel Transport.
 
         Args:
@@ -181,9 +181,9 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        k_yv = self.curv * self.loretnz_inner(end_point, tv)
-        k_xy = self.curv * self.loretnz_inner(start_point, end_point)
-        pt = tv - (k_yv / k_xy)(start_point + end_point)
+        k_yv = self.curv * self.loretnz_inner(e_pt, tv)
+        k_xy = self.curv * self.loretnz_inner(s_pt, e_pt)
+        pt = tv - (k_yv / k_xy)(s_pt + e_pt)
         return pt
 
     def tangent_gaussian(self, sigma):
