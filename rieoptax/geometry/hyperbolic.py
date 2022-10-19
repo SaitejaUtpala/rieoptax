@@ -18,7 +18,7 @@ class PoincareBall(Hyperbolic):
         self.dim = dim
         self.curv = curv
 
-    def mobius_addition(self, pt_a : Array, pt_b : Array)-> Array:
+    def mobius_add(self, pt_a : Array, pt_b : Array)-> Array:
         """_summary_
 
         Args:
@@ -39,17 +39,17 @@ class PoincareBall(Hyperbolic):
         ma = numerator / denominator
         return ma
 
-    def mobius_subtraction(self, pt_a : Array, pt_b : Array)->Array:
-        ms = self.mobius_addition(pt_a, -1 * pt_b)
+    def mobius_sub(self, pt_a : Array, pt_b : Array)->Array:
+        ms = self.mobius_add(pt_a, -1 * pt_b)
         return ms
 
-    def gyration_operator(self, pt_a: Array, pt_b: Array, vec : Array) -> Array:
-        gb = self.mobius_addition(pt_b, vec)
-        ggb = self.mobius_addition(pt_b, gb)
-        gab = self.mobius_addition(pt_a, pt_b)
-        return -1 * self.mobius_addition(gab, ggb)
+    def gyration_op(self, pt_a: Array, pt_b: Array, vec : Array) -> Array:
+        gb = self.mobius_add(pt_b, vec)
+        ggb = self.mobius_add(pt_b, gb)
+        gab = self.mobius_add(pt_a, pt_b)
+        return -1 * self.mobius_add(gab, ggb)
 
-    def conformal_factor(self, pt : Array) -> float:
+    def cf(self, pt : Array) -> float:
         cp_norm = self.curv * jnp.norm(pt) ** 2
         cf = 2 / (1 + cp_norm)
         return cf
@@ -65,8 +65,8 @@ class PoincareBall(Hyperbolic):
             returns Exp_{bpt}(tv).
         """
         t = jnp.sqrt(jnp.abs(self.curv)) * jnp.norm(tv)
-        pt = (jnp.tanh(t / 2 * self.conformal_factor(bpt)) / t) * t
-        exp = self.mobius_addition(bpt, pt)
+        pt = (jnp.tanh(t / 2 * self.cf(bpt)) / t) * t
+        exp = self.mobius_add(bpt, pt)
         return exp
 
     def log(self, bpt: Array, pt: Array) -> Array:
@@ -79,17 +79,17 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns Log_{bpt}(pt).
         """
-        ma = self.mobius_addition(-1 * bpt, pt)
+        ma = self.mobius_add(-1 * bpt, pt)
         abs_sqrt_curv = jnp.sqrt(jnp.abs(self.curv))
         norm_ma = jnp.norm(ma)
-        mul = (2 / (abs_sqrt_curv * self.conformal_factor(bpt))) * jnp.arctanh(
+        mul = (2 / (abs_sqrt_curv * self.cf(bpt))) * jnp.arctanh(
             abs_sqrt_curv * norm_ma
         )
         log = mul * (ma / norm_ma)
         return log
 
     def metric(self, bpt, tv_a, tv_b):
-        metric = self.conformal_factor(bpt) * jnp.inp(
+        metric = self.cf(bpt) * jnp.inp(
             tv_a, tv_b
         )
         return metric
@@ -105,9 +105,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        self.conformal_factor(s_pt)
-        self.conformal_facotr(e_pt)
-        pt = self.gyration_operator(e_pt, -1 * s_pt, tv)
+        pt = self.gyration_op(e_pt, -1 * s_pt, tv)
         return pt
 
     def dist(self, pt_a : Array, pt_b : Array) -> Array:
