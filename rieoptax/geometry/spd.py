@@ -177,6 +177,24 @@ class SPDManifold(RiemannianManifold):
         rotated = e_vec.T @ sym @ e_vec
         sol = e_vec @ (rotated / pair_sum) @ e_vec.T
         return sol
+    
+    def generalized_lyapunov(self, spd_a: Array, spd_b: Array, sym: Array) -> Array:
+        """Generalized Lyapunov equation solver, i.e., solver for spd_a. X. spd_b + spd_b. X. spd_a = sym
+        
+        Args:
+            spd_a: SPD matrix.
+            spd_b: SPD matrix.
+            sym: Symmetric matrix.
+
+        Returns:
+            returns solution to Generalized Lyapunov.
+
+        """
+        ahalfinv = self.neg_sqrtm(spd_a)
+        ahalf = self.sqrtm(spd_a)
+        L = self.lyapunov(ahalfinv @ spd_b @ ahalfinv, ahalfinv @ sym @ ahalfinv)
+        return ahalf @ L @ ahalf
+        
 
     def sqrtm_ABinv(self, spd_a, spd_b):
         """Compute (spd_a. (spd_b)^{-1})^{1/2}.
@@ -443,6 +461,73 @@ class SPDBuresWasserstein(SPDManifold):
 
     def egrad_to_rgrad(self, bpt: Array, egrad: Array) -> float:
         return 4 * self.symmetrize(egrad @ bpt)
+
+    
+    
+class SPDGeneralizedBuresWasserstein(SPDManifold):
+    def __init__(self, m, M):
+        self.m = m
+        self.M = M
+        super().__init__()
+
+    def exp(self, bpt: Array, tv: Array) -> Array:
+        """Riemannian Exponential map.
+
+        Args:
+            bpt: base_point, a SPD matrix.
+            tv: tangent_vec, a Symmetric matrix.
+
+        Returns:
+            returns Exp_{bpt}(tv).
+        """
+        lyp = self.generalized_lyapunov(self.M, bpt, tv)
+        return bpt + tv + self.M @ lyp @ bpt @ lyp @ self.M
+
+    def log(self, bpt: Array, pt: Array) -> Array:
+        """Riemannian Logarithm map.
+
+        Args:
+            bpt: base_point, a SPD matrix.
+            pt: tangent_vec, a SPD matrix.
+
+        Returns:
+            returns Log_{bpt}(pt).
+        """
+        Minv = self.powm(self.M, partial(jnp.power, x2=-1)) # can be stored to avoid recomputing
+        sqrt_product = self.sqrtm_AB(Minv @ bpt @ Minv, pt)
+        return self.M @ sqrt_product + sqrt_product.T @ self.M - 2 * bpt
+
+    def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> float:
+        """Inner product between two tangent vectors at a point on manifold.
+
+        Args:
+            bpt: point on the manifold, a SPD matrix.
+            tv_a: tangent vector at bpt, a Symmetric matrix.
+            tv_b: tangent vector at bpt, a Symmetric matrix.
+
+        Returns:
+            returns PT_{s_pt ->e_pt}(tv).
+        """
+        lyp = self.generalized_lyapunov(self.M, bpt, tv)
+        return 0.5 * self.trace_matprod(lyp, tv)
+
+    def dist(self, pt_a: Array, pt_b: Array) -> float:
+        """Distance between two points on the manifold induced by Riemannian metric.
+
+        Args:
+            pt_a: point on the manifold, a SPD matrix.
+            pt_b: point on the manifold, a SPD matrix.
+
+        Returns:
+            returns distance between pt_a, pt_b.
+        """
+        Minv = self.powm(self.M, partial(jnp.power, x2=-1))
+        sqrt_a = self.sqrtm(pt_a)
+        prod = self.sqrtm(sqrt_a @ Minv @ pt_b @ Minv @ sqrt_a)
+        return self.trace_matprod(Minv, pt_a) + self.trace_matprod(Minv, pt_b) - 2 * jnp.trace(prod)
+
+    def egrad_to_rgrad(self, bpt: Array, egrad: Array) -> float:
+        return 4 * self.symmetrize(self.M @ egrad @ bpt)    
 
 
 class SPDEuclidean(SPDManifold):
