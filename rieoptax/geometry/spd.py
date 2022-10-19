@@ -491,7 +491,7 @@ class SPDEuclidean(SPDManifold):
 
         Args:
             bpt: base_point, a SPD matrix.
-            r: tangent_vec, a SPD matrix.
+            egrad: tangent_vec, a SPD matrix.
 
         Returns:
             returns Log_{bpt}(pt).
