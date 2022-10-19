@@ -1,14 +1,14 @@
+from abc import ABC
 from functools import partial
 from typing import Callable
 
 from chex import Array
-
 from jax import grad, jit
 from jax import numpy as jnp
 from jax import vmap
 
 from rieoptax.geometry.base import RiemannianManifold
-from abc import ABC
+
 
 class SPDManifold(RiemannianManifold):
     

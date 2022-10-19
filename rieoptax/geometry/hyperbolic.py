@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import partial
+from math import sqrt, abs
 
 from chex import Array
 from jax import jit
@@ -14,11 +15,12 @@ class Hyperbolic(RiemannianManifold):
 
 
 class PoincareBall(Hyperbolic):
-    def __init__(self, dim : int, curv=-1):
+    def __init__(self, dim: int, curv=-1):
         self.dim = dim
         self.curv = curv
+        self.abs_sqrt_curv = sqrt(abs(self.curv))
 
-    def mobius_add(self, pt_a : Array, pt_b : Array)-> Array:
+    def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
         """_summary_
 
         Args:
@@ -32,29 +34,29 @@ class PoincareBall(Hyperbolic):
         b_norm = jnp.norm(pt_b) ** 2
         a_norm = jnp.norm(pt_a) ** 2
 
-        numerator = (
-            1 - 2 * self.curv * inp - self.curv * b_norm
-        ) * pt_a + (1 + self.curv * a_norm) * pt_b
+        numerator = (1 - 2 * self.curv * inp - self.curv * b_norm) * pt_a + (
+            1 + self.curv * a_norm
+        ) * pt_b
         denominator = 1 - 2 * self.curv + self.curv**2 * b_norm * a_norm
         ma = numerator / denominator
         return ma
 
-    def mobius_sub(self, pt_a : Array, pt_b : Array)->Array:
+    def mobius_sub(self, pt_a: Array, pt_b: Array) -> Array:
         ms = self.mobius_add(pt_a, -1 * pt_b)
         return ms
 
-    def gyration_op(self, pt_a: Array, pt_b: Array, vec : Array) -> Array:
+    def gyration_op(self, pt_a: Array, pt_b: Array, vec: Array) -> Array:
         gb = self.mobius_add(pt_b, vec)
         ggb = self.mobius_add(pt_b, gb)
         gab = self.mobius_add(pt_a, pt_b)
         return -1 * self.mobius_add(gab, ggb)
 
-    def cf(self, pt : Array) -> float:
+    def cf(self, pt: Array) -> float:
         cp_norm = self.curv * jnp.norm(pt) ** 2
         cf = 2 / (1 + cp_norm)
         return cf
 
-    def exp(self, tv : Array, bpt : Array) -> Array:
+    def exp(self, tv: Array, bpt: Array) -> Array:
         """Riemannian Exponential map.
 
         Args:
@@ -80,25 +82,22 @@ class PoincareBall(Hyperbolic):
             returns Log_{bpt}(pt).
         """
         ma = self.mobius_add(-1 * bpt, pt)
-        abs_sqrt_curv = jnp.sqrt(jnp.abs(self.curv))
         norm_ma = jnp.norm(ma)
-        mul = (2 / (abs_sqrt_curv * self.cf(bpt))) * jnp.arctanh(
-            abs_sqrt_curv * norm_ma
+        mul = (2 / (self.abs_sqrt_curv * self.cf(bpt))) * jnp.arctanh(
+            self.abs_sqrt_curv * norm_ma
         )
         log = mul * (ma / norm_ma)
         return log
 
     def metric(self, bpt, tv_a, tv_b):
-        metric = self.cf(bpt) * jnp.inp(
-            tv_a, tv_b
-        )
+        metric = self.cf(bpt) * jnp.inp(tv_a, tv_b)
         return metric
 
-    def pt(self, s_pt: Array, e_pt : Array, tv: Array)->Array:
+    def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:
-            s_pt: start poin.
+            s_pt: start point.
             e_pt: end point.
             tv: tangent vector at start point.
 
@@ -108,13 +107,30 @@ class PoincareBall(Hyperbolic):
         pt = self.gyration_op(e_pt, -1 * s_pt, tv)
         return pt
 
-    def dist(self, pt_a : Array, pt_b : Array) -> Array:
+    def dist(self, pt_a: Array, pt_b: Array) -> Array:
         t = (2 * self.curv * jnp.norm(pt_a - pt_b) ** 2) / (
-            (1 + self.curv * jnp.inner(pt_a) ** 2)(
-                1 + self.curv * jnp.inner(pt_b) ** 2
-            )
+            (1 + self.curv * jnp.inner(pt_a) ** 2)(1 + self.curv * jnp.inner(pt_b) ** 2)
         )
         dist = jnp.arccosh(1 - t) / (jnp.sqrt(jnp.abs(self.curv)))
+
+    def mobius_matvec(self, mat: Array, vec: Array) -> Array:
+        """Mobius matrix vector multiplication.
+
+        Args:
+            mat: a arbitrary Matrix.
+            vec: a vector lying on Poincare ball.
+
+        Returns:
+            returns mobius version of mat @ vec which belongs to the poincare ball.
+        """
+        matvec = mat @ vec
+        matvec_norm = jnp.linalg.norm(matvec)
+        vec_norm = jnp.linalg.norm(vec)
+        coeff = (1 / self.abs_sqrt_curv) * jnp.tanh(
+            matvec_norm / vec_norm * jnp.arctanh(self.abs_sqrt_curv * vec_norm)
+        )
+        return coeff * matvec / matvec_norm
+
 
 class LorentzHyperboloid(Hyperbolic):
     def __init__(self, m, curv=-1):
@@ -123,19 +139,19 @@ class LorentzHyperboloid(Hyperbolic):
         super().__init__()
 
     def lorentz_inp(self, x, y):
-        lip = jnp.inner(x, y) - 2* x[0] * y[0]
+        lip = jnp.inner(x, y) - 2 * x[0] * y[0]
         return lip
 
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
         return self.lorentz_inp(tv_a, tv_b)
 
-    def dist(self, pt_a : Array, pt_b : Array) -> Array:
+    def dist(self, pt_a: Array, pt_b: Array) -> Array:
         dist = jnp.arccosh(self.curv * self.lorentz_inner(pt_a, pt_b)) / (
             jnp.sqrt(self.curv)
         )
         return dist
-    
-    def exp(self, bpt : Array, tv : Array):
+
+    def exp(self, bpt: Array, tv: Array):
         """Riemannian Exponential map.
 
         Args:
@@ -145,11 +161,11 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns Exp_{bpt}(tv).
         """
-        tv_ln = jnp.sqrt(self.lorentz_inner(tv, tv)* jnp.abs(self.curv))
+        tv_ln = jnp.sqrt(self.lorentz_inner(tv, tv) * jnp.abs(self.curv))
         exp = jnp.cosh(tv_ln) * bpt + (jnp.sinh(tv_ln) / tv_ln) * tv
         return exp
 
-    def log(self, bpt : Array, pt : Array):
+    def log(self, bpt: Array, pt: Array):
         """Riemannian Logarithm map.
 
         Args:
@@ -161,10 +177,10 @@ class LorentzHyperboloid(Hyperbolic):
         """
         k_xy = self.curv * self.lorentz_inner(bpt, pt)
         arccosh_k_xy = jnp.arccosh(k_xy)
-        log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy) ) *(pt - (k_xy * bpt))
+        log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy)) * (pt - (k_xy * bpt))
         return log
 
-    def pt(self, s_pt : Array, e_pt: Array, tv: Array) -> Array:
+    def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:
@@ -178,4 +194,4 @@ class LorentzHyperboloid(Hyperbolic):
         k_yv = self.curv * self.lorentz_inp(e_pt, tv)
         k_xy = self.curv * self.lorentz_inp(s_pt, e_pt)
         pt = tv - (k_yv / k_xy)(s_pt + e_pt)
-        return pt 
+        return pt
