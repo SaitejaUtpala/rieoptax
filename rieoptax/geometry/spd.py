@@ -129,7 +129,7 @@ class SPDManifold(RiemannianManifold):
         deno = e_val[:, None] - e_val[None, :]
         nume = pow_e_val[:, None] - pow_e_val[None, :]
         same_sub = vmap(grad(power_fun))(e_val)[:, None]
-        diff_pow_diag = jnp.where(deno != 0, nume / deno, sub)
+        diff_pow_diag = jnp.where(deno != 0, nume / deno, same_sub)
         diag = (e_vec.T @ sym @ e_vec) * diff_pow_diag
         d_pow = e_vec @ diag @ e_vec.T
         return d_pow
@@ -160,7 +160,7 @@ class SPDManifold(RiemannianManifold):
             returns differential of matrix logarithm at base point 'spd'
             and evaluated at tangent vector 'sym'.
         """
-        return diff_pow(bpt, tv, jnp.log)
+        return self.diff_pow(bpt, tv, jnp.log)
 
     def lyapunov(self, spd: Array, sym: Array) -> Array:
         """Lyapunov Equation solver i.e., solve for  spd. X + X. spd = sym
@@ -172,7 +172,7 @@ class SPDManifold(RiemannianManifold):
         Returns:
             returns solution to Lyapunov.
         """
-        e_val, e_vec = gs.linalg.eigh(spd)
+        e_val, e_vec = jnp.linalg.eigh(spd)
         pair_sum = e_val[:, None] + e_val[None, :]
         rotated = e_vec.T @ sym @ e_vec
         sol = e_vec @ (rotated / pair_sum) @ e_vec.T
@@ -379,7 +379,7 @@ class SPDLogEuclidean(SPDManifold):
 
     def norm(self, bpt: Array, tv: Array) -> float:
         norm = self.diff_logm(bpt, tv)
-        return self.norm(diff)
+        return self.norm(norm)
 
 
 class SPDBuresWasserstein(SPDManifold):
