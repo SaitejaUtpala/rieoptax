@@ -14,7 +14,7 @@ class Hyperbolic(RiemannianManifold):
 
 
 class PoincareBall(Hyperbolic):
-    def __init__(self, dim, curv=-1):
+    def __init__(self, dim : int, curv=-1):
         self.dim = dim
         self.curv = curv
 
@@ -94,7 +94,7 @@ class PoincareBall(Hyperbolic):
         )
         return metric
 
-    def parallel_transport(self, s_pt, e_pt, tv):
+    def pt(self, s_pt: Array, e_pt : Array, tv: Array)->Array:
         """Parallel Transport.
 
         Args:
@@ -110,7 +110,7 @@ class PoincareBall(Hyperbolic):
         pt = self.gyration_operator(e_pt, -1 * s_pt, tv)
         return pt
 
-    def dist(self, pt_a, pt_b):
+    def dist(self, pt_a : Array, pt_b : Array) -> Array:
         t = (2 * self.curv * jnp.norm(pt_a - pt_b) ** 2) / (
             (1 + self.curv * jnp.inner(pt_a) ** 2)(
                 1 + self.curv * jnp.inner(pt_b) ** 2
@@ -118,30 +118,26 @@ class PoincareBall(Hyperbolic):
         )
         dist = jnp.arccosh(1 - t) / (jnp.sqrt(jnp.abs(self.curv)))
 
-    def tangent_gaussian(self, sigma):
-        pass 
-
-
 class LorentzHyperboloid(Hyperbolic):
     def __init__(self, m, curv=-1):
         self.m = m
         self.curv = curv
         super().__init__()
 
-    def lorentz_inner(self, x, y):
+    def lorentz_inp(self, x, y):
         lip = jnp.inner(x, y) - 2* x[0] * y[0]
         return lip
 
-    def inp(self, bpt, tangent_vec_a, tangent_vec_b):
-        return self.lorentz_inner(tangent_vec_a, tangent_vec_b)
+    def inp(self, bpt: Array, tangent_vec_a: Array, tangent_vec_b: Array) -> Array:
+        return self.lorentz_inp(tangent_vec_a, tangent_vec_b)
 
-    def dist(self, pt_a, pt_b):
+    def dist(self, pt_a : Array, pt_b : Array) -> Array:
         dist = jnp.arccosh(self.curv * self.lorentz_inner(pt_a, pt_b)) / (
             jnp.sqrt(self.curv)
         )
         return dist
     
-    def exp(self, bpt, tv):
+    def exp(self, bpt : Array, tv : Array):
         """Riemannian Exponential map.
 
         Args:
@@ -155,7 +151,7 @@ class LorentzHyperboloid(Hyperbolic):
         exp = jnp.cosh(tv_ln) * bpt + (jnp.sinh(tv_ln) / tv_ln) * tv
         return exp
 
-    def log(self, bpt, pt):
+    def log(self, bpt : Array, pt : Array):
         """Riemannian Logarithm map.
 
         Args:
@@ -170,7 +166,7 @@ class LorentzHyperboloid(Hyperbolic):
         log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy) ) *(pt - (k_xy * bpt))
         return log
 
-    def parallel_transport(self, s_pt, e_pt, tv):
+    def pt(self, s_pt : Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:
@@ -181,10 +177,7 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        k_yv = self.curv * self.loretnz_inner(e_pt, tv)
-        k_xy = self.curv * self.loretnz_inner(s_pt, e_pt)
+        k_yv = self.curv * self.lorentz_inp(e_pt, tv)
+        k_xy = self.curv * self.lorentz_inp(s_pt, e_pt)
         pt = tv - (k_yv / k_xy)(s_pt + e_pt)
-        return pt
-
-    def tangent_gaussian(self, sigma):
-        pass  
+        return pt 
