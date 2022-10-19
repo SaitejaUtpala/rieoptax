@@ -88,9 +88,9 @@ class PoincareBall(Hyperbolic):
         log = mul * (ma / norm_ma)
         return log
 
-    def metric(self, bpt, tangent_vec_a, tangent_vec_b):
+    def metric(self, bpt, tv_a, tv_b):
         metric = self.conformal_factor(bpt) * jnp.inp(
-            tangent_vec_a, tangent_vec_b
+            tv_a, tv_b
         )
         return metric
 
@@ -128,8 +128,8 @@ class LorentzHyperboloid(Hyperbolic):
         lip = jnp.inner(x, y) - 2* x[0] * y[0]
         return lip
 
-    def inp(self, bpt: Array, tangent_vec_a: Array, tangent_vec_b: Array) -> Array:
-        return self.lorentz_inp(tangent_vec_a, tangent_vec_b)
+    def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
+        return self.lorentz_inp(tv_a, tv_b)
 
     def dist(self, pt_a : Array, pt_b : Array) -> Array:
         dist = jnp.arccosh(self.curv * self.lorentz_inner(pt_a, pt_b)) / (
@@ -141,8 +141,8 @@ class LorentzHyperboloid(Hyperbolic):
         """Riemannian Exponential map.
 
         Args:
-            bpt: base_point, a SPD matrix.
-            tv: tangent_vec, a Symmetric matrix.
+            bpt: base_point.
+            tv: tangent vector at base point 'bpt'.
 
         Returns:
             returns Exp_{bpt}(tv).
@@ -155,8 +155,8 @@ class LorentzHyperboloid(Hyperbolic):
         """Riemannian Logarithm map.
 
         Args:
-            bpt: base_point, a SPD matrix.
-            pt: tangent_vec, a SPD matrix.
+            bpt: base point.
+            pt: tangent vector at base point 'bpt'.
 
         Returns:
             returns Log_{bpt}(pt).
@@ -170,9 +170,9 @@ class LorentzHyperboloid(Hyperbolic):
         """Parallel Transport.
 
         Args:
-            s_pt: start point, a SPD matrix.
-            e_pt: end point, a SPD matrix.
-            tv: tangent vector at start point, a Symmetric matrix.
+            s_pt: start point.
+            e_pt: end point.
+            tv: tangent vector at start point 's_pt'.
 
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
