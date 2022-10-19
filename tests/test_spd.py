@@ -1,10 +1,12 @@
 
 from absl.testing import absltest
 from chex import assert_trees_all_close
-from rieoptax.geometry.spd import SPDAffineInvariant
 from jax import numpy as jnp
 
-class TestSPDAffineInvarinat(absltest.TestCase):
+from rieoptax.geometry.spd import SPDAffineInvariant
+
+
+class TestSPDAffineInvariant(absltest.TestCase):
     
     manifold = SPDAffineInvariant(2)
     def test_exp(self):
@@ -38,7 +40,6 @@ class TestSPDAffineInvarinat(absltest.TestCase):
         tv = jnp.array([[0.0, 5], [5, 0.0]])
         exp = jnp.array([[0, 10], [10, 0]])
         assert_trees_all_close(self.manifold.pt(p_a, p_b, tv), exp)
-
 
     def test_egrad_to_rgrad(self):
         egrad = jnp.array([[2.0, 3.0], [3.0, 4.0]])

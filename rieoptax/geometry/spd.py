@@ -179,7 +179,11 @@ class SPDManifold(RiemannianManifold):
         return sol
     
     def generalized_lyapunov(self, spd_a: Array, spd_b: Array, sym: Array) -> Array:
-        """Generalized Lyapunov equation solver, i.e., solver for spd_a. X. spd_b + spd_b. X. spd_a = sym
+        """Generalized Lyapunov equation solver, i.e., 
+        solver for spd_a. X. spd_b + spd_b. X. spd_a = sym.
+        Note : Generalized lyapunov equation can be reduced to
+        lyapunov equation solver. This is used in Generalized 
+        Bures Wasserstein metric.
         
         Args:
             spd_a: SPD matrix.
@@ -508,8 +512,8 @@ class SPDGeneralizedBuresWasserstein(SPDManifold):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        lyp = self.generalized_lyapunov(self.M, bpt, tv)
-        return 0.5 * self.trace_matprod(lyp, tv)
+        lyp = self.generalized_lyapunov(self.M, bpt, tv_a)
+        return 0.5 * self.trace_matprod(lyp, tv_b)
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
         """Distance between two points on the manifold induced by Riemannian metric.
@@ -534,6 +538,7 @@ class SPDEuclidean(SPDManifold):
     def __init__(self, m):
         self.m = m
         super().__init__()
+        
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
         """Inner product between two tangent vectors at a point on manifold.
 
