@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import partial
-from math import  sqrt
+from math import sqrt
 
 from chex import Array
 from jax import jit
