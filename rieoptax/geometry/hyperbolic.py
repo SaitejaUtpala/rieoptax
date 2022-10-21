@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import partial
-from math import abs, sqrt
+from math import  sqrt
 
 from chex import Array
 from jax import jit
@@ -11,7 +11,13 @@ from rieoptax.geometry.base import RiemannianManifold
 
 
 class Hyperbolic(RiemannianManifold):
-    pass
+
+    def poincare_to_lorentz(self, pt):
+        pass 
+
+    def lorentz_to_poincare(self, pt):
+        pass 
+
 
 
 class PoincareBall(Hyperbolic):
