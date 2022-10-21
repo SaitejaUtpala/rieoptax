@@ -9,6 +9,7 @@ from rieoptax.geometry.hyperbolic import PoincareBall
 class PoincareDense(nn.Module):
     features: int
     curv: float = -1.0
+    use_bias: bool = True
     kernel_init: Callable = nn.initializers.lecun_normal()
     bias_init: Callable = nn.initializers.zeros
 
@@ -18,5 +19,7 @@ class PoincareDense(nn.Module):
             "kernel", self.kernel_init, (inputs.shape[-1], self.features)
         )
         bias = self.param("bias@PoincareBall", self.bias_init, (self.features,))
-        y = PoincareBall(self.features, self.curv).mobius_matvec(kernel, inputs) + bias
+        y = PoincareBall(self.features, self.curv).mobius_matvec(kernel, inputs) 
+        if self.use_bias:
+            y = y + bias
         return y
