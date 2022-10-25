@@ -7,6 +7,15 @@ from rieoptax.geometry.hyperbolic import PoincareBall
 
 
 class PoincareDense(nn.Module):
+    """A linear transformation applied over the last dimension of the input.
+
+    Attributes:
+        features: the number of output features.
+        curv: curvature of the poincare manifold.
+        use_bias: whether to add a bias to the output.
+        kernel_init: initializer function for the weight matrix.
+        bias_init: initializer function for the bias.
+    """
     features: int
     curv: float = -1.0
     use_bias: bool = True
