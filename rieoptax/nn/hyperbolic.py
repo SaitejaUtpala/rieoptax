@@ -7,7 +7,7 @@ from rieoptax.geometry.hyperbolic import PoincareBall
 
 
 class PoincareDense(nn.Module):
-    """A linear transformation applied over the last dimension of the input.
+    """A poincare dense layer applied over the last dimension of the input.
 
     Attributes:
         features: the number of output features.
