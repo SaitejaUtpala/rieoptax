@@ -45,3 +45,12 @@ class Hypergyroplanes(nn.Module):
         dist_denom =  (1 - self.curv * jnp.norm(sub)**2)  * norm
         dist = 1/sc * jnp.arcsinh(dist_nomin/dist_denom)
         return dist 
+
+class PoincareMLR(nn.Module):
+    num_classes : int 
+
+    @nn.compact
+    def __call__(self, inputs):
+        x = inputs
+        return jnp.hstack([Hypergyroplanes()(x) for _ in range(self.num_classes)])
+        
