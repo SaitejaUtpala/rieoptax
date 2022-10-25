@@ -23,3 +23,25 @@ class PoincareDense(nn.Module):
         if self.use_bias:
             y = y + bias
         return y
+
+class Hypergyroplanes(nn.Module):
+    normal_init : Callable = nn.intializer.lecun_normal()
+    point_init : Callable = nn.initializer.lecun_normal()
+    curv : float = -1.0
+
+    @nn.compact
+    def __call__(self, inputs):
+        manifold = PoincareBall(inputs.shape[-1])
+        normal = self.param(
+            "normal", self.normal_init, (inputs.shape[-1], self.features)
+        )
+        point = self.param("point@PoincareBall", self.point_init, (self.features,)) 
+
+        normal_at_point = manifold.pt(manifold.ref_point, point, normal)
+        norm = jnp.norm(normal_at_point)
+        sub = manifold.mobius_sub(point, normal_at_point)
+        sc = manifold.abs_sqrt_curv    
+        dist_nomin = 2 * sc * abs(jnp.inner(sub, normal_at_point)) 
+        dist_denom =  (1 - self.curv * jnp.norm(sub)**2)  * norm
+        dist = 1/sc * jnp.arcsinh(dist_nomin/dist_denom)
+        return dist 
