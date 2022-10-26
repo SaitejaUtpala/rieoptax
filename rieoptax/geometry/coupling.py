@@ -1,4 +1,7 @@
+from typing import Tuple
+
 from chex import Array
+from jax import numpy as jnp
 
 from rieoptax.geometry.base import RiemannianManifold
 
@@ -11,7 +14,35 @@ class CouplingManifold(RiemannianManifold):
         self.m = q.shape[0]
         self.dim = (self.n-1) * (self.m-1)
 
-    def extended_sinkhorn_knopp():
+    def ext_sinkhorn_knopp(self, pmat : Array, iter : int) -> Tuple[Array, Array] :
+        """Extended Sinkhorn Knopp Algorithm.
+
+        Args:
+            pmat: matrix.
+            iter: number of iterations.
+
+        Returns:
+            returns tuple of Diagonal Scaling matrices .
+        """
+        ones = jnp.ones(self.m)
+        pmat_T = pmat.T
+        d1 = self.q/(pmat @ ones) 
+        d2 = self.p/(pmat_T @ d1 )
+        for _ in range(iter):
+            d1 = self.q/(pmat @ d2) 
+            d2 = self.p/(pmat_T @ d1 )
+        return d1, d2
+
+    def ld_ext_sinkhorn_knopp(self, pmat : Array , iter : int) -> Array :
+        """Extended Sinkhorn Knopp Algorithm operated in Log Domain.
+
+        Args:
+            pmat: matrix.
+            iter: number of iterations.
+
+        Returns:
+            returns tuple of Diagonal Scaling matrices .
+        """
         pass 
 
 
