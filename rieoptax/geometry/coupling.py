@@ -76,7 +76,7 @@ class CouplingFisher(CouplingManifold):
         Returns:
             returns Ret_{bpt}(tv) which is a point on the manifold. 
         """
-        return self.ld_ext_sinkhorn_knopp( bpt * jnp.exp(tv/bpt), 10)
+        return self.ld_ext_sinkhorn_knopp( bpt * jnp.exp(tv/bpt), iter)
 
     def egrad_to_rgrad(self, bpt : Array, egrad: Array) -> Array:
         """Riemannian gradient convertor. 
@@ -88,7 +88,7 @@ class CouplingFisher(CouplingManifold):
         Returns:
             returns .         
         """
-        self.ts_proj(bpt, egrad * bpt)
+        return self.ts_proj(bpt, egrad * bpt)
 
 
 class Multinomial(CouplingManifold):

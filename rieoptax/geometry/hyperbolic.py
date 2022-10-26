@@ -12,11 +12,15 @@ from rieoptax.geometry.base import RiemannianManifold
 
 class Hyperbolic(RiemannianManifold):
 
-    def poincare_to_lorentz(self, pt):
-        pass 
+    def poincare_to_lorentz(self, pt : Array, curv : float) -> Array:
+        return pt[1:]/(1+sqrt(abs(curv)) * pt[0])
 
-    def lorentz_to_poincare(self, pt):
-        pass 
+    def lorentz_to_poincare(self, pt: Array, curv : float) -> Array:
+        pt_norm = jnp.norm(pt)**2
+        denom = (1 - curv * pt_norm **2)
+        z = (1 + curv * pt_norm **2)/denom
+        k = 2 * pt/denom
+        return jnp.hstack([z,k])
 
 
 
