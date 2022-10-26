@@ -4,7 +4,7 @@ from flax import linen as nn
 from jax import numpy as jnp
 
 from rieoptax.geometry.hyperbolic import PoincareBall
-
+from chex import Array 
 
 class PoincareDense(nn.Module):
     """A poincare dense layer applied over the last dimension of the input.
@@ -23,7 +23,7 @@ class PoincareDense(nn.Module):
     bias_init: Callable = nn.initializers.zeros
 
     @nn.compact
-    def __call__(self, inputs):
+    def __call__(self, inputs : Array) -> Array:
         kernel = self.param(
             "kernel", self.kernel_init, (inputs.shape[-1], self.features)
         )
@@ -39,7 +39,7 @@ class Hypergyroplanes(nn.Module):
     curv : float = -1.0
 
     @nn.compact
-    def __call__(self, inputs):
+    def __call__(self, inputs : Array) -> float:
         manifold = PoincareBall(inputs.shape[-1])
         normal = self.param(
             "normal", self.normal_init, (inputs.shape[-1], self.features)
@@ -59,7 +59,7 @@ class PoincareMLR(nn.Module):
     num_classes : int 
 
     @nn.compact
-    def __call__(self, inputs):
+    def __call__(self, inputs : Array) -> Array:
         x = inputs
         return jnp.hstack([Hypergyroplanes()(x) for _ in range(self.num_classes)])
         
