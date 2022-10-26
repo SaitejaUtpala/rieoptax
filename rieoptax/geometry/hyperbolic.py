@@ -13,9 +13,27 @@ from rieoptax.geometry.base import RiemannianManifold
 class Hyperbolic(RiemannianManifold):
 
     def poincare_to_lorentz(self, pt : Array, curv : float) -> Array:
+        """Poincare to Loretnz Isometric convertor.
+
+        Args:
+            pt: point on the PoincareBall manifold.
+            curv: curvature of the manifold.
+
+        Returns:
+            returns loretnz representation of pt
+        """
         return pt[1:]/(1+sqrt(abs(curv)) * pt[0])
 
     def lorentz_to_poincare(self, pt: Array, curv : float) -> Array:
+        """Loretnz to Poincare Isometric convertor.
+
+        Args:
+            pt: point on the LoretnzHyperboloid manifold.
+            curv: curvature of the manifold.
+
+        Returns:
+            returns poincare representation of pt
+        """
         pt_norm = jnp.norm(pt)**2
         denom = (1 - curv * pt_norm **2)
         z = (1 + curv * pt_norm **2)/denom
@@ -31,14 +49,14 @@ class PoincareBall(Hyperbolic):
         self.abs_sqrt_curv = sqrt(abs(self.curv))
 
     def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
-        """_summary_
+        """Mobius add operation
 
         Args:
-            pt_a (_type_): _description_
-            pt_b (_type_): _description_
+            pt_a: point on the manifold.
+            pt_b: point on the manifold.
 
         Returns:
-            _type_: _description_
+            returns a new point on the manifold.
         """
         inp = jnp.dot(pt_a, pt_b)
         b_norm = jnp.norm(pt_b) ** 2
