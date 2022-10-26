@@ -35,6 +35,8 @@ class CouplingManifold(RiemannianManifold):
 
     def ld_ext_sinkhorn_knopp(self, pmat : Array , iter : int) -> Array :
         """Extended Sinkhorn Knopp Algorithm operated in Log Domain.
+        Note : log domain extended sinkhorn knopp algorithm is more 
+        numerically stable thant 'ext_sinkhorn_knopp'.
 
         Args:
             pmat: matrix.
