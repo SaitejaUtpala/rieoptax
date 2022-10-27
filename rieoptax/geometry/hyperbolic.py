@@ -46,6 +46,8 @@ class Hyperbolic(RiemannianManifold):
 
 
 
+
+
 class PoincareBall(Hyperbolic):
     def __init__(self, dim: int, curv=-1):
         self.dim = dim
@@ -93,8 +95,8 @@ class PoincareBall(Hyperbolic):
         """Riemannian Exponential map.
 
         Args:
-            bpt: base_point, a SPD matrix.
-            tv: tangent_vec, a Symmetric matrix.
+            bpt: base_point.
+            tv: tangent_vec.
 
         Returns:
             returns Exp_{bpt}(tv).
@@ -108,8 +110,8 @@ class PoincareBall(Hyperbolic):
         """Riemannian Logarithm map.
 
         Args:
-            bpt: base_point, a SPD matrix.
-            pt: tangent_vec, a SPD matrix.
+            bpt: base_point.
+            pt: tangent_vec.
 
         Returns:
             returns Log_{bpt}(pt).
@@ -146,7 +148,7 @@ class PoincareBall(Hyperbolic):
         )
         dist = jnp.arccosh(1 - t) / (jnp.sqrt(jnp.abs(self.curv)))
 
-    def mobius_matvec(self, mat: Array, vec: Array) -> Array:
+    def mobius_matvec(self, mat: Array, vec: Array, diag: bool = False) -> Array:
         """Mobius matrix vector multiplication.
 
         Args:
@@ -164,7 +166,18 @@ class PoincareBall(Hyperbolic):
         )
         return coeff * matvec / matvec_norm
 
-    def random_point(self, key : PRNGKey , dtype : Dtype) :
+    def mobius_pw_prod(self, pt_a : Array, pt_b : Array) -> Array : 
+        """Mobius point wise product.
+
+        Args:
+            pt_a: point.
+            pt_b: point.
+
+        Returns:
+            returns mobius version of mat @ vec which belongs to the poincare ball.
+        """
+        return self.mobius_matvec(jnp.diag(pt_a), pt_b, True)
+
 
 
 
