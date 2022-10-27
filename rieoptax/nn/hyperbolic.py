@@ -134,7 +134,7 @@ class PoincareRNNCell(nn.Module):
     param_dtype: Dtype = jnp.float32
 
     @nn.compact
-    def __call__(self, carry, inputs):
+    def __call__(self, carry: Array, inputs : Array) -> Array:
         """Poincare RNN cell.
         Args:
             carry: the hidden state of the RNN cell,
@@ -164,7 +164,7 @@ class PoincareRNNCell(nn.Module):
         return new_h, new_h
 
     @staticmethod
-    def initialize_carry(rng, batch_dims, size, init_fn=zeros):
+    def initialize_carry(rng : PRNGKey, batch_dims, size: int, init_fn : Array =zeros) -> Array:
         """Initialize the RNN cell carry.
         Args:
             rng: random number generator passed to the init_fn.
@@ -204,7 +204,7 @@ class PoincareGRUCell(nn.Module):
     param_dtype: Dtype = jnp.float32
 
     @nn.compact
-    def __call__(self, carry: Array, inputs: Array):
+    def __call__(self, carry: Array, inputs: Array) -> Tuple[Array, Array]:
         """Poincare Gated recurrent unit (GRU) cell.
         Args:
             carry: the hidden state of the LSTM cell,
@@ -248,7 +248,7 @@ class PoincareGRUCell(nn.Module):
         return new_h, new_h
 
     @staticmethod
-    def initialize_carry(rng: PRNGKey, batch_dims, size, init_fn=zeros):
+    def initialize_carry(rng: PRNGKey, batch_dims,  size: int, init_fn: Array=zeros ) -> Array:
         """Initialize the RNN cell carry.
 
         Args:
