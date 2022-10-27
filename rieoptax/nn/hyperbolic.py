@@ -39,7 +39,7 @@ class PoincareDense(nn.Module):
         kernel = self.param(
             "kernel", self.kernel_init, (inputs.shape[-1], self.features)
         )
-        bias = self.param("bias@PoincareBall", self.bias_init, (self.features,))
+        bias = self.param("bias@PoincareBall_{self.curv}", self.bias_init, (self.features,))
         y = PoincareBall(self.features, self.curv).mobius_matvec(kernel, inputs)
         if self.use_bias:
             y = y + bias
@@ -47,9 +47,23 @@ class PoincareDense(nn.Module):
 
 
 class Hypergyroplanes(nn.Module):
-    normal_init: Callable = nn.initializer.lecun_normal()
-    point_init: Callable = nn.initializer.lecun_normal()
+    """Single Hypergyroplane.
+    
+    Attributes:
+        features: the number of output features.
+        curv: curvature of the poincare manifold.
+        use_bias: whether to add a bias to the output.
+        dtype: the dtype of the computation (default: infer from input and params).
+        param_dtype: the dtype passed to parameter initializers (default: float32).
+        kernel_init: initializer function for the weight matrix.
+        bias_init: initializer function for the bias.
+    """
+    
     curv: float = -1.0
+    dtype: Optional[Dtype] = None
+    param_dtype: Dtype = jnp.float32
+    normal_init: Callable = nn.initializers.lecun_normal()
+    point_init: Callable = nn.initializers.lecun_normal()
 
     @nn.compact
     def __call__(self, inputs: Array) -> float:
@@ -80,8 +94,7 @@ class PoincareMLR(nn.Module):
 
 class PoincareGRU(nn.Module):
     """Poincare GRU cell.
-    The mathematical definition of the cell is as follows
-    where x is the input and h, is the output of the previous time step.
+
     Attributes:
         gate_fn: activation function used for gates (default: sigmoid)
         activation_fn: activation function used for output and memory update
@@ -115,7 +128,6 @@ class PoincareGRU(nn.Module):
 
         h = carry
         hidden_features = h.shape[-1]
-        # input and recurrent layers are summed so only one needs a bias.
         dense_h = partial(
             PoincareDense,
             features=hidden_features,
@@ -134,9 +146,22 @@ class PoincareGRU(nn.Module):
         )
         r = self.gate_fn(dense_i(name="ir")(inputs) + dense_h(name="hr")(h))
         z = self.gate_fn(dense_i(name="iz")(inputs) + dense_h(name="hz")(h))
-        # add bias because the linear transformations aren't directly summed.
         n = self.activation_fn(
             dense_i(name="in")(inputs) + r * dense_h(name="hn", use_bias=True)(h)
         )
         new_h = (1.0 - z) * n + z * h
         return new_h, new_h
+
+    @staticmethod
+    def initialize_carry(rng, batch_dims, size, init_fn=zeros):
+        """Initialize the RNN cell carry.
+        Args:
+        rng: random number generator passed to the init_fn.
+        batch_dims: a tuple providing the shape of the batch dimensions.
+        size: the size or number of features of the memory.
+        init_fn: initializer function for the carry.
+        Returns:
+        An initialized carry for the given RNN cell.
+        """
+        mem_shape = batch_dims + (size,)
+        return init_fn(rng, mem_shape)
