@@ -59,7 +59,7 @@ class PoincareDense(nn.Module):
         else:
             bias = None
         inputs, kernel, bias = promote_dtype(inputs, kernel, bias, dtype=self.dtype)
-        y = vmap(manifold.mobius_matvec, in_axes=(None,0))(kernel, inputs)
+        y = vmap(manifold.mobius_matvec, in_axes=(None, 0))(kernel, inputs)
         if self.use_bias:
             y = y + bias
         return y
@@ -147,6 +147,8 @@ class PoincareRNNCell(nn.Module):
 
         h = carry
         hidden_features = h.shape[-1]
+        manifold = PoincareBall(hidden_features, self.curv)
+        mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
         dense = partial(
             PoincareDense,
             features=hidden_features,
@@ -156,7 +158,9 @@ class PoincareRNNCell(nn.Module):
         )
         dense_h = partial(dense, use_bias=False)
         dense_i = partial(dense, use_bias=True)
-        new_h = self.gate_fn(dense_i(name="ih")(inputs) + dense_h(name="hh")(h))
+        new_h = self.gate_fn(
+            mobius_add(dense_i(name="ih")(inputs), dense_h(name="hh")(h))
+        )
         return new_h, new_h
 
     @staticmethod
@@ -167,7 +171,8 @@ class PoincareRNNCell(nn.Module):
             batch_dims: a tuple providing the shape of the batch dimensions.
             size: the size or number of features of the memory.
             init_fn: initializer function for the carry.
-            Returns:
+
+        Returns:
             An initialized carry for the given RNN cell.
         """
         mem_shape = batch_dims + (size,)
@@ -206,14 +211,16 @@ class PoincareGRUCell(nn.Module):
                 initialized using `GRUCell.initialize_carry`.
             inputs: an ndarray with the input for the current time step.
                 All dimensions except the final are considered batch dimensions.
+
         Returns:
-        A tuple with the new carry and the output.
+            A tuple with the new carry and the output.
         """
 
         h = carry
         hidden_features = h.shape[-1]
-        input_features = inputs.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
+        mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
+        mobius_pw_prod = vmap(manifold.mobius_pw_prod, in_axes=(0, 0))
         dense_h = partial(
             PoincareDense,
             features=hidden_features,
@@ -230,26 +237,27 @@ class PoincareGRUCell(nn.Module):
             kernel_init=self.kernel_init,
             bias_init=self.bias_init,
         )
-        r = self.gate_fn(dense_i(name="ir")(inputs) + dense_h(name="hr")(h))
-        z = self.gate_fn(dense_i(name="iz")(inputs) + dense_h(name="hz")(h))
+        r = self.gate_fn(mobius_add(dense_i(name="ir")(inputs), dense_h(name="hr")(h)))
+        z = self.gate_fn(mobius_add(dense_i(name="iz")(inputs), dense_h(name="hz")(h)))
         n = self.activation_fn(
-            dense_i(name="in")(inputs)
-            + manifold.mobius_pw_prod(r, dense_h(name="hn")(h))
+            mobius_add(
+                dense_i(name="in")(inputs), mobius_pw_prod(r, dense_h(name="hn")(h))
+            )
         )
-        new_h = manifold.mobius_add(
-            h, manifold.mobius_pw_prod(z, manifold.mobius_add(-1.0 * h, n))
-        )
+        new_h = mobius_add(h, mobius_pw_prod(z, mobius_add(-1.0 * h, n)))
         return new_h, new_h
 
     @staticmethod
     def initialize_carry(rng: PRNGKey, batch_dims, size, init_fn=zeros):
         """Initialize the RNN cell carry.
+
         Args:
             rng: random number generator passed to the init_fn.
             batch_dims: a tuple providing the shape of the batch dimensions.
             size: the size or number of features of the memory.
             init_fn: initializer function for the carry.
-            Returns:
+
+        Returns:
             An initialized carry for the given RNN cell.
         """
         mem_shape = batch_dims + (size,)
