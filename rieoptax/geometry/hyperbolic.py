@@ -159,6 +159,8 @@ class PoincareBall(Hyperbolic):
         )
         return coeff * matvec / matvec_norm
 
+    def wrapped_normal()
+
 
 class LorentzHyperboloid(Hyperbolic):
     def __init__(self, m, curv=-1):

@@ -1,10 +1,14 @@
-from typing import Callable
+from functools import partial
+from typing import Any, Callable, Tuple
 
+from chex import Array
 from flax import linen as nn
 from jax import numpy as jnp
 
 from rieoptax.geometry.hyperbolic import PoincareBall
-from chex import Array 
+
+PRNGKey = Any
+Shape = Tuple[int, ...]
 
 class PoincareDense(nn.Module):
     """A poincare dense layer applied over the last dimension of the input.
@@ -34,7 +38,7 @@ class PoincareDense(nn.Module):
         return y
 
 class Hypergyroplanes(nn.Module):
-    normal_init : Callable = nn.intializer.lecun_normal()
+    normal_init : Callable = nn.initializer.lecun_normal()
     point_init : Callable = nn.initializer.lecun_normal()
     curv : float = -1.0
 
@@ -62,4 +66,61 @@ class PoincareMLR(nn.Module):
     def __call__(self, inputs : Array) -> Array:
         x = inputs
         return jnp.hstack([Hypergyroplanes()(x) for _ in range(self.num_classes)])
+
+
+class PoincareGRU(nn.Module):
+    """Poincare GRU cell.
+    The mathematical definition of the cell is as follows
+    where x is the input and h, is the output of the previous time step.
+    Attributes:
+        gate_fn: activation function used for gates (default: sigmoid)
+        activation_fn: activation function used for output and memory update
+        (default: tanh).
+        kernel_init: initializer function for the kernels that transform
+        the input (default: lecun_normal).
+        recurrent_kernel_init: initializer function for the kernels that transform
+        the hidden state (default: orthogonal).
+        bias_init: initializer for the bias parameters (default: zeros)
+    """
+    gate_fn: Callable[..., Any] = sigmoid
+    activation_fn: Callable[..., Any] = tanh
+    kernel_init: Callable[[PRNGKey, Shape, Dtype], Array] = (default_kernel_init)
+    recurrent_kernel_init: Callable[[PRNGKey, Shape, Dtype], Array] = ()
+    bias_init: Callable[[PRNGKey, Shape, Dtype], Array] = zeros
+    @nn.compact
+    def __call__(self, carry, inputs):
+        """Gated recurrent unit (GRU) cell.
+        Args:
+            carry: the hidden state of the LSTM cell,
+                initialized using `GRUCell.initialize_carry`.
+            inputs: an ndarray with the input for the current time step.
+                All dimensions except the final are considered batch dimensions.
+        Returns:
+        A tuple with the new carry and the output.
+        """
+    h = carry
+    hidden_features = h.shape[-1]
+    # input and recurrent layers are summed so only one needs a bias.
+    dense_h = partial(PoincareDense,
+                      features=hidden_features,
+                      use_bias=False,
+                      dtype=self.dtype,
+                      param_dtype=self.param_dtype,
+                      kernel_init=self.recurrent_kernel_init,
+                      bias_init=self.bias_init)
+    dense_i = partial(Dense,
+                      features=hidden_features,
+                      use_bias=True,
+                      dtype=self.dtype,
+                      param_dtype=self.param_dtype,
+                      kernel_init=self.kernel_init,
+                      bias_init=self.bias_init)
+    r = self.gate_fn(dense_i(name='ir')(inputs) + dense_h(name='hr')(h))
+    z = self.gate_fn(dense_i(name='iz')(inputs) + dense_h(name='hz')(h))
+    # add bias because the linear transformations aren't directly summed.
+    n = self.activation_fn(dense_i(name='in')(inputs) +
+                           r * dense_h(name='hn', use_bias=True)(h))
+    new_h = (1. - z) * n + z * h
+    return new_h, new_h
+
         
