@@ -39,7 +39,7 @@ class PoincareDense(nn.Module):
     def __call__(self, inputs: Array) -> Array:
         manifold = PoincareBall(self.features, self.curv)
         kernel = self.param(
-            "kernel", self.kernel_init, (inputs.shape[-1], self.features)
+            "kernel", self.kernel_init, (self.features, inputs.shape[-1])
         )
         bias = self.param(
             "bias@"+str(manifold), self.bias_init, (self.features,)
