@@ -11,7 +11,7 @@ from rieoptax.geometry.hyperbolic import PoincareBall
 PRNGKey = Any
 Shape = Tuple[int, ...]
 Dtype = Any
-
+zeros = nn.initializers.zeros
 
 class PoincareDense(nn.Module):
     """A poincare dense layer applied over the last dimension of the input.
@@ -32,7 +32,7 @@ class PoincareDense(nn.Module):
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
     kernel_init: Callable = nn.initializers.lecun_normal()
-    bias_init: Callable = nn.initializers.zeros
+    bias_init: Callable = zeros
 
     @nn.compact
     def __call__(self, inputs: Array) -> Array:
@@ -63,7 +63,7 @@ class Hypergyroplanes(nn.Module):
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
     normal_init: Callable = nn.initializers.lecun_normal()
-    point_init: Callable = nn.initializers.lecun_normal()
+    point_init: Callable = zeros
 
     @nn.compact
     def __call__(self, inputs: Array) -> float:
@@ -108,9 +108,9 @@ class PoincareGRU(nn.Module):
 
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
-    kernel_init: Callable[[PRNGKey, Shape, Dtype], Array] = default_kernel_init
-    recurrent_kernel_init: Callable[[PRNGKey, Shape, Dtype], Array] = ()
-    bias_init: Callable[[PRNGKey, Shape, Dtype], Array] = zeros
+    kernel_init: Callable = nn.initializers.lecun_normal()
+    recurrent_kernel_init: Callable = nn.initializers.lecun_normal()
+    bias_init: Callable = zeros
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
 

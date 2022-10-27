@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import partial
 from math import sqrt
+from typing import Any, Tuple
 
 from chex import Array
 from jax import jit
@@ -9,6 +10,9 @@ from jax import vmap
 
 from rieoptax.geometry.base import RiemannianManifold
 
+PRNGKey = Any
+Shape = Tuple[int, ...]
+Dtype = Any
 
 class Hyperbolic(RiemannianManifold):
 
@@ -159,6 +163,9 @@ class PoincareBall(Hyperbolic):
             matvec_norm / vec_norm * jnp.arctanh(self.abs_sqrt_curv * vec_norm)
         )
         return coeff * matvec / matvec_norm
+
+    def random_point(self, key : PRNGKey , dtype : Dtype) :
+
 
 
 
