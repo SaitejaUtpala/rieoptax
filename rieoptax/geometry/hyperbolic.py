@@ -49,10 +49,13 @@ class Hyperbolic(RiemannianManifold):
 
 
 class PoincareBall(Hyperbolic):
-    def __init__(self, dim: int, curv=-1):
-        self.dim = dim
+    def __init__(self, m: int, curv=-1):
+        self.m = m
         self.curv = curv
         self.abs_sqrt_curv = sqrt(abs(self.curv))
+
+    def __repr__(self) -> str:
+        return f'PoincareBall("{self.m}","{self.curv}")'
     
 
     def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
