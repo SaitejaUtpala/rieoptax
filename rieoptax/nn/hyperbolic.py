@@ -54,7 +54,6 @@ class Hypergyroplanes(nn.Module):
     """Single Hypergyroplane.
 
     Attributes:
-        features: the number of output features.
         curv: curvature of the poincare manifold.
         use_bias: whether to add a bias to the output.
         dtype: the dtype of the computation (default: infer from input and params).
@@ -62,7 +61,6 @@ class Hypergyroplanes(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
-
     curv: float = -1.0
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
@@ -71,11 +69,12 @@ class Hypergyroplanes(nn.Module):
 
     @nn.compact
     def __call__(self, inputs: Array) -> float:
-        manifold = PoincareBall(inputs.shape[-1])
+        input_shape = inputs.shape[-1]
+        manifold = PoincareBall(input_shape, self.curv)
         normal = self.param(
-            "normal", self.normal_init, (inputs.shape[-1], self.features)
+            "normal", self.normal_init, (input_shape,)
         )
-        point = self.param("point@PoincareBall", self.point_init, (self.features,))
+        point = self.param("point@"+str(manifold), self.point_init, (input_shape,))
 
         normal_at_point = manifold.pt(manifold.ref_point, point, normal)
         norm = jnp.norm(normal_at_point)
