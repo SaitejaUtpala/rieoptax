@@ -42,6 +42,7 @@ class PoincareDense(nn.Module):
     @nn.compact
     def __call__(self, inputs: Array) -> Array:
         manifold = PoincareBall(self.features, self.curv)
+        # (TODO) : make it consistent with flax kernel shape order i.e., transpose.
         kernel = self.param(
             "kernel",
             self.kernel_init,
