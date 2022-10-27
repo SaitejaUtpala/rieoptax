@@ -156,12 +156,12 @@ class PoincareGRU(nn.Module):
     def initialize_carry(rng, batch_dims, size, init_fn=zeros):
         """Initialize the RNN cell carry.
         Args:
-        rng: random number generator passed to the init_fn.
-        batch_dims: a tuple providing the shape of the batch dimensions.
-        size: the size or number of features of the memory.
-        init_fn: initializer function for the carry.
-        Returns:
-        An initialized carry for the given RNN cell.
+            rng: random number generator passed to the init_fn.
+            batch_dims: a tuple providing the shape of the batch dimensions.
+            size: the size or number of features of the memory.
+            init_fn: initializer function for the carry.
+            Returns:
+            An initialized carry for the given RNN cell.
         """
         mem_shape = batch_dims + (size,)
         return init_fn(rng, mem_shape)

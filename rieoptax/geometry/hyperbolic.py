@@ -47,6 +47,7 @@ class PoincareBall(Hyperbolic):
         self.dim = dim
         self.curv = curv
         self.abs_sqrt_curv = sqrt(abs(self.curv))
+    
 
     def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
         """Mobius add operation
@@ -159,7 +160,6 @@ class PoincareBall(Hyperbolic):
         )
         return coeff * matvec / matvec_norm
 
-    def wrapped_normal()
 
 
 class LorentzHyperboloid(Hyperbolic):
