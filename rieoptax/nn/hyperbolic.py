@@ -4,6 +4,8 @@ from typing import Any, Callable, Optional, Tuple
 from chex import Array
 from flax import linen as nn
 from flax.linen.activation import sigmoid, tanh
+from flax.linen.initializers import orthogonal
+from flax.linen.linear import default_kernel_init
 from jax import numpy as jnp
 
 from rieoptax.geometry.hyperbolic import PoincareBall
@@ -32,7 +34,7 @@ class PoincareDense(nn.Module):
     use_bias: bool = True
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
-    kernel_init: Callable = nn.initializers.lecun_normal()
+    kernel_init: Callable = default_kernel_init
     bias_init: Callable = zeros
 
     @nn.compact
@@ -41,9 +43,7 @@ class PoincareDense(nn.Module):
         kernel = self.param(
             "kernel", self.kernel_init, (self.features, inputs.shape[-1])
         )
-        bias = self.param(
-            "bias@"+str(manifold), self.bias_init, (self.features,)
-        )
+        bias = self.param("bias@" + str(manifold), self.bias_init, (self.features,))
         y = manifold.mobius_matvec(kernel, inputs)
         if self.use_bias:
             y = y + bias
@@ -61,6 +61,7 @@ class Hypergyroplanes(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
+
     curv: float = -1.0
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
@@ -71,10 +72,8 @@ class Hypergyroplanes(nn.Module):
     def __call__(self, inputs: Array) -> float:
         input_shape = inputs.shape[-1]
         manifold = PoincareBall(input_shape, self.curv)
-        normal = self.param(
-            "normal", self.normal_init, (input_shape,)
-        )
-        point = self.param("point@"+str(manifold), self.point_init, (input_shape,))
+        normal = self.param("normal", self.normal_init, (input_shape,))
+        point = self.param("point@" + str(manifold), self.point_init, (input_shape,))
 
         normal_at_point = manifold.pt(manifold.ref_point, point, normal)
         norm = jnp.norm(normal_at_point)
@@ -95,7 +94,56 @@ class PoincareMLR(nn.Module):
         return jnp.hstack([Hypergyroplanes()(x) for _ in range(self.num_classes)])
 
 
-class PoincareGRU(nn.Module):
+class PoincareRNNCell(nn.Module):
+    """Poincare RNN cell.
+
+    Attributes:
+        gate_fn: activation function used for gates (default: sigmoid)
+        activation_fn: activation function used for output and memory update
+        (default: tanh).
+        kernel_init: initializer function for the kernels that transform
+        the input (default: lecun_normal).
+        recurrent_kernel_init: initializer function for the kernels that transform
+        the hidden state (default: orthogonal).
+        bias_init: initializer for the bias parameters (default: zeros)
+    """
+
+    gate_fn: Callable[..., Any] = sigmoid
+    activation_fn: Callable[..., Any] = tanh
+    kernel_init: Callable = default_kernel_init
+    recurrent_kernel_init: Callable = orthogonal()
+    bias_init: Callable = zeros
+    dtype: Optional[Dtype] = None
+    param_dtype: Dtype = jnp.float32
+
+    @nn.compact
+    def __call__(self, carry, inputs):
+        """Poincare RNN cell.
+        Args:
+            carry: the hidden state of the RNN cell,
+                initialized using `PoincareRNNCell.initialize_carry`.
+            inputs: an ndarray with the input for the current time step.
+                All dimensions except the final are considered batch dimensions.
+        Returns:
+        A tuple with the new carry and the output.
+        """
+
+        h = carry
+        hidden_features = h.shape[-1]
+        dense = partial(
+            PoincareDense,
+            features=hidden_features,
+            use_bias=True,
+            kernel_init=self.recurrent_kernel_init,
+            bias_init=self.bias_init,
+        )
+        dense_h = partial(dense, use_bias=False)
+        dense_i = partial(dense, use_bias=True)
+        new_h = self.gate_fn(dense_i(name="ih")(inputs) + dense_h(name="hh")(h))
+        return new_h, new_h
+
+
+class PoincareGRUCell(nn.Module):
     """Poincare GRU cell.
 
     Attributes:
@@ -111,8 +159,8 @@ class PoincareGRU(nn.Module):
 
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
-    kernel_init: Callable = nn.initializers.lecun_normal()
-    recurrent_kernel_init: Callable = nn.initializers.lecun_normal()
+    kernel_init: Callable = default_kernel_init
+    recurrent_kernel_init: Callable = orthogonal()
     bias_init: Callable = zeros
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
@@ -152,7 +200,7 @@ class PoincareGRU(nn.Module):
         z = self.gate_fn(dense_i(name="iz")(inputs) + dense_h(name="hz")(h))
         n = self.activation_fn(
             dense_i(name="in")(inputs)
-            + manifold.mobius_pw_prod(r, dense_h(name="hn", use_bias=True)(h))
+            + manifold.mobius_pw_prod(r, dense_h(name="hn")(h))
         )
         new_h = manifold.mobius_add(
             h, manifold.mobius_pw_prod(z, manifold.mobius_add(-1.0 * h, n))
