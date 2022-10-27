@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 from chex import Array
 from flax import linen as nn
@@ -10,6 +10,7 @@ from rieoptax.geometry.hyperbolic import PoincareBall
 
 PRNGKey = Any
 Shape = Tuple[int, ...]
+Dtype = Any
 
 
 class PoincareDense(nn.Module):
@@ -19,6 +20,8 @@ class PoincareDense(nn.Module):
         features: the number of output features.
         curv: curvature of the poincare manifold.
         use_bias: whether to add a bias to the output.
+        dtype: the dtype of the computation (default: infer from input and params).
+        param_dtype: the dtype passed to parameter initializers (default: float32).
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
@@ -26,6 +29,8 @@ class PoincareDense(nn.Module):
     features: int
     curv: float = -1.0
     use_bias: bool = True
+    dtype: Optional[Dtype] = None
+    param_dtype: Dtype = jnp.float32
     kernel_init: Callable = nn.initializers.lecun_normal()
     bias_init: Callable = nn.initializers.zeros
 
