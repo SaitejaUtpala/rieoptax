@@ -4,9 +4,11 @@ from typing import Any, Callable, Optional, Tuple
 from chex import Array
 from flax import linen as nn
 from flax.linen.activation import sigmoid, tanh
+from flax.linen.dtypes import promote_dtype
 from flax.linen.initializers import orthogonal
 from flax.linen.linear import default_kernel_init
 from jax import numpy as jnp
+from jax import vmap
 
 from rieoptax.geometry.hyperbolic import PoincareBall
 
@@ -41,10 +43,22 @@ class PoincareDense(nn.Module):
     def __call__(self, inputs: Array) -> Array:
         manifold = PoincareBall(self.features, self.curv)
         kernel = self.param(
-            "kernel", self.kernel_init, (self.features, inputs.shape[-1])
+            "kernel",
+            self.kernel_init,
+            (self.features, inputs.shape[-1]),
+            self.param_dtype,
         )
-        bias = self.param("bias@" + str(manifold), self.bias_init, (self.features,))
-        y = manifold.mobius_matvec(kernel, inputs)
+        if self.use_bias:
+            bias = self.param(
+                "bias@" + str(manifold),
+                self.bias_init,
+                (self.features,),
+                self.param_dtype,
+            )
+        else:
+            bias = None
+        inputs, kernel, bias = promote_dtype(inputs, kernel, bias, dtype=self.dtype)
+        y = vmap(manifold.mobius_matvec, in_axes=(None,0))(kernel, inputs)
         if self.use_bias:
             y = y + bias
         return y
@@ -108,6 +122,7 @@ class PoincareRNNCell(nn.Module):
         the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
+
     curv: float = -1.0
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
@@ -157,6 +172,7 @@ class PoincareRNNCell(nn.Module):
         mem_shape = batch_dims + (size,)
         return init_fn(rng, mem_shape)
 
+
 class PoincareGRUCell(nn.Module):
     """Poincare GRU cell.
 
@@ -171,6 +187,7 @@ class PoincareGRUCell(nn.Module):
         the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
+
     curv: float = -1.0
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
@@ -181,7 +198,7 @@ class PoincareGRUCell(nn.Module):
     param_dtype: Dtype = jnp.float32
 
     @nn.compact
-    def __call__(self, carry : Array, inputs : Array):
+    def __call__(self, carry: Array, inputs: Array):
         """Poincare Gated recurrent unit (GRU) cell.
         Args:
             carry: the hidden state of the LSTM cell,
@@ -194,6 +211,7 @@ class PoincareGRUCell(nn.Module):
 
         h = carry
         hidden_features = h.shape[-1]
+        input_features = inputs.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
         dense_h = partial(
             PoincareDense,
