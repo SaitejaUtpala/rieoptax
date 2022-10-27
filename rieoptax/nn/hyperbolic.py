@@ -142,6 +142,19 @@ class PoincareRNNCell(nn.Module):
         new_h = self.gate_fn(dense_i(name="ih")(inputs) + dense_h(name="hh")(h))
         return new_h, new_h
 
+    @staticmethod
+    def initialize_carry(rng, batch_dims, size, init_fn=zeros):
+        """Initialize the RNN cell carry.
+        Args:
+            rng: random number generator passed to the init_fn.
+            batch_dims: a tuple providing the shape of the batch dimensions.
+            size: the size or number of features of the memory.
+            init_fn: initializer function for the carry.
+            Returns:
+            An initialized carry for the given RNN cell.
+        """
+        mem_shape = batch_dims + (size,)
+        return init_fn(rng, mem_shape)
 
 class PoincareGRUCell(nn.Module):
     """Poincare GRU cell.
@@ -167,7 +180,7 @@ class PoincareGRUCell(nn.Module):
 
     @nn.compact
     def __call__(self, carry, inputs):
-        """Gated recurrent unit (GRU) cell.
+        """Poincare Gated recurrent unit (GRU) cell.
         Args:
             carry: the hidden state of the LSTM cell,
                 initialized using `GRUCell.initialize_carry`.
