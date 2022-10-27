@@ -13,6 +13,7 @@ Shape = Tuple[int, ...]
 Dtype = Any
 zeros = nn.initializers.zeros
 
+
 class PoincareDense(nn.Module):
     """A poincare dense layer applied over the last dimension of the input.
 
@@ -39,7 +40,9 @@ class PoincareDense(nn.Module):
         kernel = self.param(
             "kernel", self.kernel_init, (inputs.shape[-1], self.features)
         )
-        bias = self.param("bias@PoincareBall_{self.curv}", self.bias_init, (self.features,))
+        bias = self.param(
+            "bias@PoincareBall_{self.curv}", self.bias_init, (self.features,)
+        )
         y = PoincareBall(self.features, self.curv).mobius_matvec(kernel, inputs)
         if self.use_bias:
             y = y + bias
@@ -48,7 +51,7 @@ class PoincareDense(nn.Module):
 
 class Hypergyroplanes(nn.Module):
     """Single Hypergyroplane.
-    
+
     Attributes:
         features: the number of output features.
         curv: curvature of the poincare manifold.
@@ -58,7 +61,7 @@ class Hypergyroplanes(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
-    
+
     curv: float = -1.0
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
@@ -128,6 +131,7 @@ class PoincareGRU(nn.Module):
 
         h = carry
         hidden_features = h.shape[-1]
+        manifold = PoincareBall(hidden_features, self.curv)
         dense_h = partial(
             PoincareDense,
             features=hidden_features,
@@ -147,9 +151,12 @@ class PoincareGRU(nn.Module):
         r = self.gate_fn(dense_i(name="ir")(inputs) + dense_h(name="hr")(h))
         z = self.gate_fn(dense_i(name="iz")(inputs) + dense_h(name="hz")(h))
         n = self.activation_fn(
-            dense_i(name="in")(inputs) + r * dense_h(name="hn", use_bias=True)(h)
+            dense_i(name="in")(inputs)
+            + manifold.mobius_pw_prod(r, dense_h(name="hn", use_bias=True)(h))
         )
-        new_h = (1.0 - z) * n + z * h
+        new_h = manifold.mobius_add(
+            h, manifold.mobius_pw_prod(z, manifold.mobius_add(-1.0 * h, n))
+        )
         return new_h, new_h
 
     @staticmethod

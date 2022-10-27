@@ -143,17 +143,26 @@ class PoincareBall(Hyperbolic):
         return pt
 
     def dist(self, pt_a: Array, pt_b: Array) -> Array:
+        """Distance between two points on the manifold induced by Riemannian metric.
+
+        Args:
+            pt_a: point on the manifold.
+            pt_b: point on the manifold.
+
+        Returns:
+            returns distance between pt_a, pt_b.
+        """
         t = (2 * self.curv * jnp.norm(pt_a - pt_b) ** 2) / (
             (1 + self.curv * jnp.inner(pt_a) ** 2)(1 + self.curv * jnp.inner(pt_b) ** 2)
         )
         dist = jnp.arccosh(1 - t) / (jnp.sqrt(jnp.abs(self.curv)))
 
-    def mobius_matvec(self, mat: Array, vec: Array, diag: bool = False) -> Array:
+    def mobius_matvec(self, mat: Array, vec: Array) -> Array:
         """Mobius matrix vector multiplication.
 
         Args:
-            mat: a arbitrary Matrix.
-            vec: a vector lying on Poincare ball.
+            mat: arbitrary Matrix.
+            vec: vector lying on Poincare ball.
 
         Returns:
             returns mobius version of mat @ vec which belongs to the poincare ball.
@@ -170,13 +179,13 @@ class PoincareBall(Hyperbolic):
         """Mobius point wise product.
 
         Args:
-            pt_a: point.
-            pt_b: point.
+            pt_a: point on the manifold.
+            pt_b: point on the manifold.
 
         Returns:
             returns mobius version of mat @ vec which belongs to the poincare ball.
         """
-        return self.mobius_matvec(jnp.diag(pt_a), pt_b, True)
+        return self.mobius_matvec(jnp.diag(pt_a), pt_b)
 
 
 
@@ -196,6 +205,15 @@ class LorentzHyperboloid(Hyperbolic):
         return self.lorentz_inp(tv_a, tv_b)
 
     def dist(self, pt_a: Array, pt_b: Array) -> Array:
+        """Distance between two points on the manifold induced by Riemannian metric.
+
+        Args:
+            pt_a: point on the manifold.
+            pt_b: point on the manifold.
+
+        Returns:
+            returns distance between pt_a, pt_b.
+        """
         dist = jnp.arccosh(self.curv * self.lorentz_inner(pt_a, pt_b)) / (
             jnp.sqrt(self.curv)
         )
