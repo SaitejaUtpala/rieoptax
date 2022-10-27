@@ -98,6 +98,7 @@ class PoincareRNNCell(nn.Module):
     """Poincare RNN cell.
 
     Attributes:
+        curv: curvature of the poincare manifold.
         gate_fn: activation function used for gates (default: sigmoid)
         activation_fn: activation function used for output and memory update
         (default: tanh).
@@ -107,7 +108,7 @@ class PoincareRNNCell(nn.Module):
         the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
-
+    curv: float = -1.0
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
     kernel_init: Callable = default_kernel_init
@@ -160,6 +161,7 @@ class PoincareGRUCell(nn.Module):
     """Poincare GRU cell.
 
     Attributes:
+        curv: curvature of the poincare manifold.
         gate_fn: activation function used for gates (default: sigmoid)
         activation_fn: activation function used for output and memory update
         (default: tanh).
@@ -169,7 +171,7 @@ class PoincareGRUCell(nn.Module):
         the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
-
+    curv: float = -1.0
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
     kernel_init: Callable = default_kernel_init
@@ -179,7 +181,7 @@ class PoincareGRUCell(nn.Module):
     param_dtype: Dtype = jnp.float32
 
     @nn.compact
-    def __call__(self, carry, inputs):
+    def __call__(self, carry : Array, inputs : Array):
         """Poincare Gated recurrent unit (GRU) cell.
         Args:
             carry: the hidden state of the LSTM cell,
@@ -221,7 +223,7 @@ class PoincareGRUCell(nn.Module):
         return new_h, new_h
 
     @staticmethod
-    def initialize_carry(rng, batch_dims, size, init_fn=zeros):
+    def initialize_carry(rng: PRNGKey, batch_dims, size, init_fn=zeros):
         """Initialize the RNN cell carry.
         Args:
             rng: random number generator passed to the init_fn.
