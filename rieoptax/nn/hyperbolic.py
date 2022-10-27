@@ -41,7 +41,7 @@ class PoincareDense(nn.Module):
             "kernel", self.kernel_init, (inputs.shape[-1], self.features)
         )
         bias = self.param(
-            "bias@PoincareBall_{self.curv}", self.bias_init, (self.features,)
+            "bias@PoincareBall_"+str(self.curv), self.bias_init, (self.features,)
         )
         y = PoincareBall(self.features, self.curv).mobius_matvec(kernel, inputs)
         if self.use_bias:
