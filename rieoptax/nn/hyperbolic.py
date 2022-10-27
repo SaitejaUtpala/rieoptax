@@ -30,7 +30,6 @@ class PoincareDense(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
-
     features: int
     curv: float = -1.0
     use_bias: bool = True
@@ -76,7 +75,6 @@ class Hypergyroplanes(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
-
     curv: float = -1.0
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
@@ -91,11 +89,11 @@ class Hypergyroplanes(nn.Module):
         point = self.param("point@" + str(manifold), self.point_init, (input_shape,))
 
         normal_at_point = manifold.pt(manifold.ref_point, point, normal)
-        norm = jnp.norm(normal_at_point)
+        norm = jnp.linalg.norm(normal_at_point)
         sub = manifold.mobius_sub(point, normal_at_point)
         sc = manifold.abs_sqrt_curv
         dist_nomin = 2 * sc * abs(jnp.inner(sub, normal_at_point))
-        dist_denom = (1 - self.curv * jnp.norm(sub) ** 2) * norm
+        dist_denom = (1 - self.curv * jnp.linalg.norm(sub) ** 2) * norm
         dist = 1 / sc * jnp.arcsinh(dist_nomin / dist_denom)
         return dist
 
@@ -123,7 +121,6 @@ class PoincareRNNCell(nn.Module):
         the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
-
     curv: float = -1.0
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
@@ -134,17 +131,18 @@ class PoincareRNNCell(nn.Module):
     param_dtype: Dtype = jnp.float32
 
     @nn.compact
-    def __call__(self, carry: Array, inputs : Array) -> Array:
+    def __call__(self, carry: Array, inputs: Array) -> Array:
         """Poincare RNN cell.
+
         Args:
             carry: the hidden state of the RNN cell,
                 initialized using `PoincareRNNCell.initialize_carry`.
             inputs: an ndarray with the input for the current time step.
                 All dimensions except the final are considered batch dimensions.
+
         Returns:
         A tuple with the new carry and the output.
         """
-
         h = carry
         hidden_features = h.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
@@ -164,7 +162,9 @@ class PoincareRNNCell(nn.Module):
         return new_h, new_h
 
     @staticmethod
-    def initialize_carry(rng : PRNGKey, batch_dims, size: int, init_fn : Array =zeros) -> Array:
+    def initialize_carry(
+        rng: PRNGKey, batch_dims, size: int, init_fn: Array = zeros
+    ) -> Array:
         """Initialize the RNN cell carry.
         Args:
             rng: random number generator passed to the init_fn.
@@ -193,7 +193,6 @@ class PoincareGRUCell(nn.Module):
         the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
-
     curv: float = -1.0
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
@@ -215,7 +214,6 @@ class PoincareGRUCell(nn.Module):
         Returns:
             A tuple with the new carry and the output.
         """
-
         h = carry
         hidden_features = h.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
@@ -248,7 +246,9 @@ class PoincareGRUCell(nn.Module):
         return new_h, new_h
 
     @staticmethod
-    def initialize_carry(rng: PRNGKey, batch_dims,  size: int, init_fn: Array=zeros ) -> Array:
+    def initialize_carry(
+        rng: PRNGKey, batch_dims, size: int, init_fn: Array = zeros
+    ) -> Array:
         """Initialize the RNN cell carry.
 
         Args:

@@ -38,7 +38,7 @@ class Hyperbolic(RiemannianManifold):
         Returns:
             returns poincare representation of pt
         """
-        pt_norm = jnp.norm(pt)**2
+        pt_norm = jnp.linalg.norm(pt)**2
         denom = (1 - curv * pt_norm **2)
         z = (1 + curv * pt_norm **2)/denom
         k = 2 * pt/denom
@@ -69,8 +69,8 @@ class PoincareBall(Hyperbolic):
             returns a new point on the manifold.
         """
         inp = jnp.dot(pt_a, pt_b)
-        b_norm = jnp.norm(pt_b) ** 2
-        a_norm = jnp.norm(pt_a) ** 2
+        b_norm = jnp.linalg.norm(pt_b) ** 2
+        a_norm = jnp.linalg.norm(pt_a) ** 2
 
         numerator = (1 - 2 * self.curv * inp - self.curv * b_norm) * pt_a + (
             1 + self.curv * a_norm
@@ -90,7 +90,7 @@ class PoincareBall(Hyperbolic):
         return -1 * self.mobius_add(gab, ggb)
 
     def cf(self, pt: Array) -> float:
-        cp_norm = self.curv * jnp.norm(pt) ** 2
+        cp_norm = self.curv * jnp.linalg.norm(pt) ** 2
         cf = 2 / (1 + cp_norm)
         return cf
 
@@ -104,7 +104,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns Exp_{bpt}(tv).
         """
-        t = jnp.sqrt(jnp.abs(self.curv)) * jnp.norm(tv)
+        t = jnp.sqrt(jnp.abs(self.curv)) * jnp.linalg.norm(tv)
         pt = (jnp.tanh(t / 2 * self.cf(bpt)) / t) * t
         exp = self.mobius_add(bpt, pt)
         return exp
@@ -120,7 +120,7 @@ class PoincareBall(Hyperbolic):
             returns Log_{bpt}(pt).
         """
         ma = self.mobius_add(-1 * bpt, pt)
-        norm_ma = jnp.norm(ma)
+        norm_ma = jnp.linalg.norm(ma)
         mul = (2 / (self.abs_sqrt_curv * self.cf(bpt))) * jnp.arctanh(
             self.abs_sqrt_curv * norm_ma
         )
@@ -155,7 +155,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns distance between pt_a, pt_b.
         """
-        t = (2 * self.curv * jnp.norm(pt_a - pt_b) ** 2) / (
+        t = (2 * self.curv * jnp.linalg.norm(pt_a - pt_b) ** 2) / (
             (1 + self.curv * jnp.inner(pt_a) ** 2)(1 + self.curv * jnp.inner(pt_b) ** 2)
         )
         dist = jnp.arccosh(1 - t) / (jnp.sqrt(jnp.abs(self.curv)))
