@@ -30,6 +30,7 @@ class PoincareDense(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
+
     features: int
     curv: float = -1.0
     use_bias: bool = True
@@ -75,6 +76,7 @@ class Hypergyroplanes(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
+
     curv: float = -1.0
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
@@ -121,6 +123,7 @@ class PoincareRNNCell(nn.Module):
         the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
+
     curv: float = -1.0
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
@@ -194,6 +197,7 @@ class PoincareGRUCell(nn.Module):
         the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
+
     curv: float = -1.0
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
@@ -238,8 +242,12 @@ class PoincareGRUCell(nn.Module):
             kernel_init=self.kernel_init,
             bias_init=self.bias_init,
         )
-        r = mobius_gate_fn(mobius_add(dense_i(name="ir")(inputs), dense_h(name="hr")(h)))
-        z = mobius_gate_fn(mobius_add(dense_i(name="iz")(inputs), dense_h(name="hz")(h)))
+        r = mobius_gate_fn(
+            mobius_add(dense_i(name="ir")(inputs), dense_h(name="hr")(h))
+        )
+        z = mobius_gate_fn(
+            mobius_add(dense_i(name="iz")(inputs), dense_h(name="hz")(h))
+        )
         n = mobius_activation_fn(
             mobius_add(
                 dense_i(name="in")(inputs), mobius_pw_prod(r, dense_h(name="hn")(h))
