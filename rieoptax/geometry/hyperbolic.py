@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import partial
 from math import sqrt
-from typing import Any, Tuple
+from typing import Any, Callable, Tuple
 
 from chex import Array
 from jax import jit
@@ -53,6 +53,7 @@ class PoincareBall(Hyperbolic):
         self.m = m
         self.curv = curv
         self.abs_sqrt_curv = sqrt(abs(self.curv))
+        self.ref_point = jnp.zeros(m)
 
     def __repr__(self) -> str:
         return f'PoincareBall("{self.m}","{self.curv}")'
@@ -94,7 +95,7 @@ class PoincareBall(Hyperbolic):
         cf = 2 / (1 + cp_norm)
         return cf
 
-    def exp(self, tv: Array, bpt: Array) -> Array:
+    def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
 
         Args:
@@ -188,8 +189,21 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns mobius version of mat @ vec which belongs to the poincare ball.
         """
+        #TODO : make it faster
         return self.mobius_matvec(jnp.diag(pt_a), pt_b)
 
+    def mobius_f(self, f: Callable) -> Callable:
+        """Generic mobius version of f: R^{m} -> R^{n}
+
+        Args:
+            f : any function.
+
+        Returns:
+            returns mobius version of f
+        """
+        def mobius_f(x : Array) -> Array:
+            return self.exp(self.ref_point, f(self.log(self.ref_point, x)))
+        return mobius_f
 
 
 

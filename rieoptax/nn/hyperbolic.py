@@ -147,6 +147,7 @@ class PoincareRNNCell(nn.Module):
         hidden_features = h.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
+        mobius_gate_fn = vmap(manifold.mobius_f(self.gate_fn))
         dense = partial(
             PoincareDense,
             features=hidden_features,
@@ -156,7 +157,7 @@ class PoincareRNNCell(nn.Module):
         )
         dense_h = partial(dense, use_bias=False)
         dense_i = partial(dense, use_bias=True)
-        new_h = self.gate_fn(
+        new_h = mobius_gate_fn(
             mobius_add(dense_i(name="ih")(inputs), dense_h(name="hh")(h))
         )
         return new_h, new_h
@@ -219,6 +220,8 @@ class PoincareGRUCell(nn.Module):
         manifold = PoincareBall(hidden_features, self.curv)
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
         mobius_pw_prod = vmap(manifold.mobius_pw_prod, in_axes=(0, 0))
+        mobius_gate_fn = vmap(manifold.mobius_f(self.gate_fn))
+        mobius_activation_fn = vmap(manifold.mobius_f(self.activation_fn))
         dense_h = partial(
             PoincareDense,
             features=hidden_features,
@@ -235,9 +238,9 @@ class PoincareGRUCell(nn.Module):
             kernel_init=self.kernel_init,
             bias_init=self.bias_init,
         )
-        r = self.gate_fn(mobius_add(dense_i(name="ir")(inputs), dense_h(name="hr")(h)))
-        z = self.gate_fn(mobius_add(dense_i(name="iz")(inputs), dense_h(name="hz")(h)))
-        n = self.activation_fn(
+        r = mobius_gate_fn(mobius_add(dense_i(name="ir")(inputs), dense_h(name="hr")(h)))
+        z = mobius_gate_fn(mobius_add(dense_i(name="iz")(inputs), dense_h(name="hz")(h)))
+        n = mobius_activation_fn(
             mobius_add(
                 dense_i(name="in")(inputs), mobius_pw_prod(r, dense_h(name="hn")(h))
             )
