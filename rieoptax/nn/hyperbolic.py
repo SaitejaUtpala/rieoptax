@@ -118,9 +118,9 @@ class PoincareRNNCell(nn.Module):
         activation_fn: activation function used for output and memory update
         (default: tanh).
         kernel_init: initializer function for the kernels that transform
-        the input (default: lecun_normal).
+            the input (default: lecun_normal).
         recurrent_kernel_init: initializer function for the kernels that transform
-        the hidden state (default: orthogonal).
+            the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
 
@@ -187,18 +187,21 @@ class PoincareGRUCell(nn.Module):
     """Poincare GRU cell.
 
     Attributes:
-        curv: curvature of the poincare manifold.
+        curv: curvature of the poincare manifold (default: -1).
+        eps: eps to be added inputs, h while doing operations, done
+            to increase numerical stability of operations (default: 1E-15). 
         gate_fn: activation function used for gates (default: sigmoid)
         activation_fn: activation function used for output and memory update
-        (default: tanh).
+            (default: tanh).
         kernel_init: initializer function for the kernels that transform
-        the input (default: lecun_normal).
+            the input (default: lecun_normal).
         recurrent_kernel_init: initializer function for the kernels that transform
-        the hidden state (default: orthogonal).
+            the hidden state (default: orthogonal).
         bias_init: initializer for the bias parameters (default: zeros)
     """
 
     curv: float = -1.0
+    eps : float = 1e-15
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
     kernel_init: Callable = default_kernel_init
@@ -219,7 +222,8 @@ class PoincareGRUCell(nn.Module):
         Returns:
             A tuple with the new carry and the output.
         """
-        h = carry
+        h = carry + self.eps 
+        inputs = inputs + self.eps
         hidden_features = h.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
