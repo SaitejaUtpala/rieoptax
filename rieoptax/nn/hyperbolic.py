@@ -8,7 +8,7 @@ from flax.linen.dtypes import promote_dtype
 from flax.linen.initializers import orthogonal
 from flax.linen.linear import default_kernel_init
 from jax import numpy as jnp
-from jax import vmap
+from jax import random, vmap
 
 from rieoptax.geometry.hyperbolic import PoincareBall
 
@@ -281,3 +281,22 @@ class PoincareGRUCell(nn.Module):
         """
         mem_shape = batch_dims + (size,)
         return init_fn(rng, mem_shape)
+
+
+class LiftedPoincareGRUCell(nn.Module):
+    """A minimalist poincare GRU cell which is ready to use."""
+
+    @partial(
+        nn.transforms.scan,
+        variable_broadcast="params",
+        in_axes=1,
+        out_axes=1,
+        split_rngs={"params": False},
+    )
+    def __call__(self, carry, inputs):
+        return PoincareGRUCell()(carry, inputs)
+
+    def initialize_carry(batch_dims, hidden_size):
+        return PoincareGRUCell.initialize_carry(
+            random.PRNGKey(0), batch_dims, hidden_size
+        )
