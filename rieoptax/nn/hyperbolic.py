@@ -137,7 +137,7 @@ class PoincareRNNCell(nn.Module):
     param_dtype: Dtype = jnp.float32
 
     @nn.compact
-    def __call__(self, carry: Array, inputs: Array) -> Array:
+    def __call__(self, carry: Array, inputs: Array) -> Tuple[Array, Array]:
         """Poincare RNN cell.
 
         Args:
@@ -293,10 +293,10 @@ class LiftedPoincareGRUCell(nn.Module):
         out_axes=1,
         split_rngs={"params": False},
     )
+    @nn.compact
     def __call__(self, carry: Array, inputs: Array) -> Tuple[Array, Array]:
         return PoincareGRUCell()(carry, inputs)
 
-    def initialize_carry(batch_dims: Tuple[int, ...], size: int):
-        return PoincareGRUCell.initialize_carry(
-            random.PRNGKey(0), batch_dims, size
-        )
+    @staticmethod
+    def initialize_carry(batch_dims: Tuple[int, ...], size: int) -> Array:
+        return PoincareGRUCell.initialize_carry(random.PRNGKey(0), batch_dims, size)
