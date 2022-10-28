@@ -171,7 +171,7 @@ class PoincareRNNCell(nn.Module):
 
     @staticmethod
     def initialize_carry(
-        rng: PRNGKey, batch_dims, size: int, init_fn: Array = zeros
+        rng: PRNGKey, batch_dims: Tuple[int, ...], size: int, init_fn: Array = zeros
     ) -> Array:
         """Initialize the RNN cell carry.
         Args:
@@ -266,7 +266,7 @@ class PoincareGRUCell(nn.Module):
 
     @staticmethod
     def initialize_carry(
-        rng: PRNGKey, batch_dims, size: int, init_fn: Array = zeros
+        rng: PRNGKey, batch_dims: Tuple[int, ...], size: int, init_fn: Array = zeros
     ) -> Array:
         """Initialize the RNN cell carry.
 
@@ -293,10 +293,10 @@ class LiftedPoincareGRUCell(nn.Module):
         out_axes=1,
         split_rngs={"params": False},
     )
-    def __call__(self, carry, inputs):
+    def __call__(self, carry: Array, inputs: Array) -> Tuple[Array, Array]:
         return PoincareGRUCell()(carry, inputs)
 
-    def initialize_carry(batch_dims, hidden_size):
+    def initialize_carry(batch_dims: Tuple[int, ...], size: int):
         return PoincareGRUCell.initialize_carry(
-            random.PRNGKey(0), batch_dims, hidden_size
+            random.PRNGKey(0), batch_dims, size
         )
