@@ -207,6 +207,18 @@ class PoincareBall(Hyperbolic):
 
         return mobius_f
 
+    def egrad_to_rgrad(self, bpt : Array, egrad : Array) -> Array :
+        """Euclidean gradient to Riemannian gradient Convertor.
+
+        Args:
+            bpt: base_point.
+            egrad: tangent_vec.
+
+        Returns:
+            returns Riemannian gradient.
+        """
+        return egrad/(self.cf(bpt)**2)
+
 
 class LorentzHyperboloid(Hyperbolic):
     def __init__(self, m, curv=-1):
