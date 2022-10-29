@@ -56,7 +56,7 @@ class PoincareBall(Hyperbolic):
         self.ref_point = jnp.zeros(m)
 
     def __repr__(self) -> str:
-        return f'PoincareBall("{self.m}","{self.curv}")'
+        return f'PoincareBall({self.m},{self.curv})'
     
 
     def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
