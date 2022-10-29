@@ -40,7 +40,6 @@ def rgrad(f):
 
 
 class TransformInitFn(Protocol):
-
     def __call__(self, params):
         "The `init` function"    
    
