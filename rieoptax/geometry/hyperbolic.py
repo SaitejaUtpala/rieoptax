@@ -55,7 +55,7 @@ class PoincareBall(Hyperbolic):
         self.abs_sqrt_curv = sqrt(abs(self.curv))
         self.ref_point = jnp.zeros(m)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f'hyperbolic@PoincareBall({self.m},{self.curv})'
 
     @classmethod
