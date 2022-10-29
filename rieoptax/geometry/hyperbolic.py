@@ -8,6 +8,7 @@ from jax import jit
 from jax import numpy as jnp
 from jax import vmap
 
+from rieoptax.core import straight_through_f
 from rieoptax.geometry.base import RiemannianManifold
 
 PRNGKey = Any
@@ -46,11 +47,19 @@ class Hyperbolic(RiemannianManifold):
 
 
 class PoincareBall(Hyperbolic):
-    def __init__(self, m: int, curv: float = -1.0):
+    def __init__(
+        self,
+        m: int,
+        curv: float = -1.0,
+        in_radii : float = 1e-15,
+        out_radii : float= 1e-8,
+    ):
         self.m = m
         self.curv = curv
         self.abs_sqrt_curv = sqrt(abs(self.curv))
         self.ref_point = jnp.zeros(m)
+        self.in_radii = in_radii
+        self.out_radii = out_radii
 
     def __str__(self) -> str:
         return f"hyperbolic@PoincareBall({self.m},{self.curv})"
@@ -58,6 +67,15 @@ class PoincareBall(Hyperbolic):
     @classmethod
     def from_str(cls, m_str: str, curv_str: str):
         return cls(int(m_str), float(curv_str))
+
+    def regularize(self, pt: Array) -> Array:
+        def _regularize(pt):
+            norm = jnp.linalg.norm(pt)
+            mul = max(self.out_radii / norm, 1.0)
+            pt = pt / self.norm(pt)
+
+        reg_pt = straight_through_f(_regularize)(pt)
+        return reg_pt
 
     def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
         """Mobius add operation
@@ -207,7 +225,7 @@ class PoincareBall(Hyperbolic):
 
         return mobius_f
 
-    def egrad_to_rgrad(self, bpt : Array, egrad : Array) -> Array :
+    def egrad_to_rgrad(self, bpt: Array, egrad: Array) -> Array:
         """Euclidean gradient to Riemannian gradient Convertor.
 
         Args:
@@ -217,7 +235,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns Riemannian gradient.
         """
-        return egrad/(self.cf(bpt)**2)
+        return egrad / (self.cf(bpt) ** 2)
 
 
 class LorentzHyperboloid(Hyperbolic):

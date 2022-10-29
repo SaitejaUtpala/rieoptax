@@ -1,6 +1,7 @@
-from typing import NamedTuple
+from typing import Callable, NamedTuple
 
-from jax import grad
+from chex import Array
+from jax import grad, lax
 from jax import numpy as jnp
 from jax.tree_util import register_pytree_node_class
 from typing_extensions import Protocol
@@ -30,7 +31,7 @@ class ManifoldArray:
         return cls(children[0], aux_data)
 
 
-def rgrad(f):
+def rgrad(f : Callable) -> Callable:
     "Riemannian Gradient Operator"
     def _temp(*args, **kwargs):
         g = args[0].manifold.egrad_to_rgrad(args[0],grad(f)(*args, **kwargs))
@@ -38,6 +39,11 @@ def rgrad(f):
         return g 
     return _temp
 
+def straight_through_f(f : Callable) -> Callable:
+    def _f(x : Array) -> Array:
+        zero = x - lax.stop_gradient(x)
+        return zero + lax.stop_gradient(f(x))
+    return _f 
 
 class TransformInitFn(Protocol):
     def __call__(self, params):

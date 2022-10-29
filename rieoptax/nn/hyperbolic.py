@@ -33,6 +33,8 @@ class PoincareDense(nn.Module):
 
     features: int
     curv: float = -1.0
+    in_radii: float = 1 - 1e-8
+    out_radii: float = 1e-15
     use_bias: bool = True
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
@@ -42,6 +44,9 @@ class PoincareDense(nn.Module):
     @nn.compact
     def __call__(self, inputs: Array) -> Array:
         manifold = PoincareBall(self.features, self.curv)
+        regularize = vmap(manifold.regularize)
+        mobius_matvec = vmap(manifold.mobius_matvec, in_axes=(None, 0))
+        mobius_add = vmap(manifold.mobius_add, in_axes=(0, None))
         # (TODO) : make it consistent with flax kernel shape order i.e., transpose.
         kernel = self.param(
             "kernel",
@@ -59,9 +64,10 @@ class PoincareDense(nn.Module):
         else:
             bias = None
         inputs, kernel, bias = promote_dtype(inputs, kernel, bias, dtype=self.dtype)
-        y = vmap(manifold.mobius_matvec, in_axes=(None, 0))(kernel, inputs)
+        inputs = regularize(inputs)
+        y = mobius_matvec(kernel, inputs)
         if self.use_bias:
-            y = y + bias
+            y = mobius_add(regularize(y), bias)
         return y
 
 
@@ -78,6 +84,8 @@ class Hypergyroplanes(nn.Module):
     """
 
     curv: float = -1.0
+    in_radii: float = 1 - 1e-8
+    out_radii: float = 1e-15
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
     normal_init: Callable = nn.initializers.lecun_normal()
@@ -127,7 +135,8 @@ class PoincareRNNCell(nn.Module):
     """
 
     curv: float = -1.0
-    eps: float = 1e-15
+    in_radii: float = 1 - 1e-8
+    out_radii: float = 1e-15
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
     kernel_init: Callable = default_kernel_init
@@ -205,7 +214,8 @@ class PoincareGRUCell(nn.Module):
     """
 
     curv: float = -1.0
-    eps: float = 1e-15
+    in_radii: float = 1 - 1e-8
+    out_radii: float = 1e-15
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
     kernel_init: Callable = default_kernel_init
