@@ -1,5 +1,6 @@
-from base import RiemannianManifold
 from chex import Array
+
+from rieoptax.geometry.base import RiemannianManifold
 
 
 class Euclidean(RiemannianManifold):

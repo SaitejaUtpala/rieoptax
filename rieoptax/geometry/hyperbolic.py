@@ -49,15 +49,19 @@ class Hyperbolic(RiemannianManifold):
 
 
 class PoincareBall(Hyperbolic):
-    def __init__(self, m: int, curv=-1):
+    def __init__(self, m: int, curv : float =-1.0):
         self.m = m
         self.curv = curv
         self.abs_sqrt_curv = sqrt(abs(self.curv))
         self.ref_point = jnp.zeros(m)
 
     def __repr__(self) -> str:
-        return f'PoincareBall({self.m},{self.curv})'
-    
+        return f'hyperbolic.PoincareBall({self.m},{self.curv})'
+
+    @classmethod
+    def from_str(cls, m_str : str, curv_str: str):
+        return cls(int(m_str), float(curv_str) )
+
 
     def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
         """Mobius add operation
