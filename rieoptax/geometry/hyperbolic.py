@@ -14,9 +14,9 @@ PRNGKey = Any
 Shape = Tuple[int, ...]
 Dtype = Any
 
-class Hyperbolic(RiemannianManifold):
 
-    def poincare_to_lorentz(self, pt : Array, curv : float) -> Array:
+class Hyperbolic(RiemannianManifold):
+    def poincare_to_lorentz(self, pt: Array, curv: float) -> Array:
         """Poincare to Loretnz Isometric convertor.
 
         Args:
@@ -26,9 +26,9 @@ class Hyperbolic(RiemannianManifold):
         Returns:
             returns loretnz representation of pt
         """
-        return pt[1:]/(1+sqrt(abs(curv)) * pt[0])
+        return pt[1:] / (1 + sqrt(abs(curv)) * pt[0])
 
-    def lorentz_to_poincare(self, pt: Array, curv : float) -> Array:
+    def lorentz_to_poincare(self, pt: Array, curv: float) -> Array:
         """Loretnz to Poincare Isometric convertor.
 
         Args:
@@ -38,30 +38,26 @@ class Hyperbolic(RiemannianManifold):
         Returns:
             returns poincare representation of pt
         """
-        pt_norm = jnp.linalg.norm(pt)**2
-        denom = (1 - curv * pt_norm **2)
-        z = (1 + curv * pt_norm **2)/denom
-        k = 2 * pt/denom
-        return jnp.hstack([z,k])
-
-
-
+        pt_norm = jnp.linalg.norm(pt) ** 2
+        denom = 1 - curv * pt_norm**2
+        z = (1 + curv * pt_norm**2) / denom
+        k = 2 * pt / denom
+        return jnp.hstack([z, k])
 
 
 class PoincareBall(Hyperbolic):
-    def __init__(self, m: int, curv : float =-1.0):
+    def __init__(self, m: int, curv: float = -1.0):
         self.m = m
         self.curv = curv
         self.abs_sqrt_curv = sqrt(abs(self.curv))
         self.ref_point = jnp.zeros(m)
 
     def __str__(self) -> str:
-        return f'hyperbolic@PoincareBall({self.m},{self.curv})'
+        return f"hyperbolic@PoincareBall({self.m},{self.curv})"
 
     @classmethod
-    def from_str(cls, m_str : str, curv_str: str):
-        return cls(int(m_str), float(curv_str) )
-
+    def from_str(cls, m_str: str, curv_str: str):
+        return cls(int(m_str), float(curv_str))
 
     def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
         """Mobius add operation
@@ -183,7 +179,7 @@ class PoincareBall(Hyperbolic):
         )
         return coeff * matvec / matvec_norm
 
-    def mobius_pw_prod(self, pt_a : Array, pt_b : Array) -> Array : 
+    def mobius_pw_prod(self, pt_a: Array, pt_b: Array) -> Array:
         """Mobius point wise product.
 
         Args:
@@ -193,7 +189,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns mobius version of mat @ vec which belongs to the poincare ball.
         """
-        #TODO : make it faster
+        # TODO : make it faster
         return self.mobius_matvec(jnp.diag(pt_a), pt_b)
 
     def mobius_f(self, f: Callable) -> Callable:
@@ -205,11 +201,11 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns mobius version of f
         """
-        def mobius_f(x : Array) -> Array:
+
+        def mobius_f(x: Array) -> Array:
             return self.exp(self.ref_point, f(self.log(self.ref_point, x)))
+
         return mobius_f
-
-
 
 
 class LorentzHyperboloid(Hyperbolic):
