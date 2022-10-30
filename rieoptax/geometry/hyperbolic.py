@@ -185,9 +185,8 @@ class PoincareBall(Hyperbolic):
             returns distance between pt_a, pt_b.
         """
         t = (2 * self.curv * jnp.linalg.norm(pt_a - pt_b) ** 2) / (
-            (1 + self.curv * jnp.linalg.norm(pt_a) ** 2)(
-                1 + self.curv * jnp.linalg.norm(pt_b) ** 2
-            )
+            (1 + self.curv * jnp.linalg.norm(pt_a) ** 2)
+            * (1 + self.curv * jnp.linalg.norm(pt_b) ** 2)
         )
         dist = jnp.arccosh(1 - t) / (sqrt(abs(self.curv)))
 
