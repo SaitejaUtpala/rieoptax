@@ -88,13 +88,13 @@ class PoincareBall(Hyperbolic):
             returns a new point on the manifold.
         """
         inp = jnp.inner(pt_a, pt_b)
-        b_norm = jnp.linalg.norm(pt_b) ** 2
-        a_norm = jnp.linalg.norm(pt_a) ** 2
-
-        numerator = (1 - 2 * self.curv * inp - self.curv * b_norm) * pt_a + (
-            1 + self.curv * a_norm
+        
+        a_norm2 = jnp.linalg.norm(pt_a) ** 2
+        b_norm2 = jnp.linalg.norm(pt_b) ** 2
+        numerator = (1 - 2 * self.curv * inp - self.curv * b_norm2) * pt_a + (
+            1 + self.curv * a_norm2
         ) * pt_b
-        denominator = 1 - 2 * self.curv * inp + self.curv**2 * b_norm * a_norm
+        denominator = 1 - 2 * self.curv * inp + self.curv**2 * b_norm2 * a_norm2
         ma = numerator / denominator
         return ma
 
@@ -146,9 +146,9 @@ class PoincareBall(Hyperbolic):
         log = mul * (ma / norm_ma)
         return log
 
-    def metric(self, bpt, tv_a, tv_b):
-        metric = self.cf(bpt) * jnp.inp(tv_a, tv_b)
-        return metric
+    def inp(self, bpt: Array, tv_a : Array, tv_b : Array) -> float:
+        inp = (self.cf(bpt)**2) * jnp.inner(tv_a, tv_b)
+        return inp
 
     def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
