@@ -71,8 +71,8 @@ class PoincareDense(nn.Module):
         return regularize(y)
 
 
-class Hypergyroplanes(nn.Module):
-    """Single Hypergyroplane.
+class _Hypergyroplane(nn.Module):
+    """Single hypergyroplane Layer and computes logits.
 
     Attributes:
         curv: curvature of the poincare manifold.
@@ -94,21 +94,36 @@ class Hypergyroplanes(nn.Module):
     @nn.compact
     def __call__(self, inputs: Array) -> float:
         input_shape = inputs.shape[-1]
-        manifold = PoincareBall(input_shape, self.curv)
         normal = self.param("normal", self.normal_init, (input_shape,))
         point = self.param("point@" + str(manifold), self.point_init, (input_shape,))
+        manifold = PoincareBall(input_shape, self.curv)
+        pt = manifold.pt 
+        mobius_add = vmap(manifold.mobius_add, in_axes=(None,0))
+        cf = manifold.cf
 
-        normal_at_point = manifold.pt(manifold.ref_point, point, normal)
-        norm = jnp.linalg.norm(normal_at_point)
-        sub = manifold.mobius_sub(point, normal_at_point)
+
         sc = manifold.abs_sqrt_curv
-        dist_nomin = 2 * sc * abs(jnp.inner(sub, normal_at_point))
-        dist_denom = (1 - self.curv * jnp.linalg.norm(sub) ** 2) * norm
-        dist = 1 / sc * jnp.arcsinh(dist_nomin / dist_denom)
-        return dist
+        normal_at_point = pt(manifold.ref_point, point, normal)
+        norm = jnp.linalg.norm(normal_at_point)
+        add = mobius_add(point, inputs)
+        dist_nomin = 2 * sc * jnp.inner(add, normal_at_point)
+        dist_denom = (1 - self.curv * jnp.linalg.norm(add) ** 2) * norm
+        dist = jnp.arcsinh(dist_nomin / dist_denom)
+        logits =  (cf(point) * norm * dist)/sc 
+        return logits
 
 
 class PoincareMLR(nn.Module):
+    """Poincare Multi logistiic regression layer.
+
+    Attributes:
+        curv: curvature of the poincare manifold.
+        use_bias: whether to add a bias to the output.
+        dtype: the dtype of the computation (default: infer from input and params).
+        param_dtype: the dtype passed to parameter initializers (default: float32).
+        kernel_init: initializer function for the weight matrix.
+        bias_init: initializer function for the bias.
+    """
     num_classes: int
     curv: float = -1.0
     in_radii: float = 1 - 1e-8
@@ -123,7 +138,7 @@ class PoincareMLR(nn.Module):
         x = inputs
         return jnp.hstack(
             [
-                Hypergyroplanes(
+                _Hypergyroplanes(
                     curv=self.curv,
                     in_radii=self.in_radii,
                     out_radii=self.out_radii,
