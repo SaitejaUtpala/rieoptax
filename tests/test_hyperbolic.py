@@ -8,5 +8,6 @@ from rieoptax.geometry.hyperbolic import PoincareBall
 
 class TestPoincareBall(absltest.TestCase):
     manifold = PoincareBall(2)
+    
 
    

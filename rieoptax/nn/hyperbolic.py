@@ -33,7 +33,7 @@ class PoincareDense(nn.Module):
 
     features: int
     curv: float = -1.0
-    in_radii: float = 1 - 1e-8
+    in_radii: float = 1-1e-8
     out_radii: float = 1e-15
     use_bias: bool = True
     dtype: Optional[Dtype] = None
@@ -68,7 +68,7 @@ class PoincareDense(nn.Module):
         y = mobius_matvec(kernel, inputs)
         if self.use_bias:
             y = mobius_add(regularize(y), bias)
-        return y
+        return regularize(y)
 
 
 class Hypergyroplanes(nn.Module):
@@ -162,8 +162,10 @@ class PoincareRNNCell(nn.Module):
         inputs = inputs + self.eps
         hidden_features = h.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
+        regularize = vmap(manifold.regularize)
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
         mobius_gate_fn = vmap(manifold.mobius_f(self.gate_fn))
+        
         dense = partial(
             PoincareDense,
             features=hidden_features,
@@ -174,7 +176,7 @@ class PoincareRNNCell(nn.Module):
         dense_h = partial(dense, use_bias=False)
         dense_i = partial(dense, use_bias=True)
         new_h = mobius_gate_fn(
-            mobius_add(dense_i(name="ih")(inputs), dense_h(name="hh")(h))
+            regularize(mobius_add(dense_i(name="ih")(inputs), dense_h(name="hh")(h)))
         )
         return new_h, new_h
 

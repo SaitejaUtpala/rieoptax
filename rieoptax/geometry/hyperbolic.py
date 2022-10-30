@@ -87,14 +87,14 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns a new point on the manifold.
         """
-        inp = jnp.dot(pt_a, pt_b)
+        inp = jnp.inner(pt_a, pt_b)
         b_norm = jnp.linalg.norm(pt_b) ** 2
         a_norm = jnp.linalg.norm(pt_a) ** 2
 
         numerator = (1 - 2 * self.curv * inp - self.curv * b_norm) * pt_a + (
             1 + self.curv * a_norm
         ) * pt_b
-        denominator = 1 - 2 * self.curv + self.curv**2 * b_norm * a_norm
+        denominator = 1 - 2 * self.curv * inp + self.curv**2 * b_norm * a_norm
         ma = numerator / denominator
         return ma
 
@@ -123,8 +123,8 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns Exp_{bpt}(tv).
         """
-        t = jnp.sqrt(jnp.abs(self.curv)) * jnp.linalg.norm(tv)
-        pt = (jnp.tanh(t / 2 * self.cf(bpt)) / t) * t
+        t = sqrt(abs(self.curv)) * jnp.linalg.norm(tv)
+        pt = jnp.tanh((t * self.cf(bpt)) / 2  ) * (tv/t)
         exp = self.mobius_add(bpt, pt)
         return exp
 
