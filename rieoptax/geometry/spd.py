@@ -283,7 +283,7 @@ class SPDAffineInvariant(SPDManifold):
             tv_b: tangent vector at bpt, a Symmetric matrix.
 
         Returns:
-            returns PT_{s_pt ->e_pt}(tv).
+            returns <tv_a, tv_b>_{bpt}.
         """
         bpt_inv = jnp.linalg.inv(bpt)
         return self.trace_matprod(bpt_inv @ tv_a, bpt_inv @ tv_b)
@@ -378,7 +378,7 @@ class SPDLogEuclidean(SPDManifold):
             tv_b: tangent vector at bpt, a Symmetric matrix.
 
         Returns:
-            returns PT_{s_pt ->e_pt}(tv).
+            returns <tv_a, tv_b>_{bpt}.
         """
         de_a = self.diff_logm(bpt, tv_a)
         de_b = self.diff_logm(bpt, tv_b)
@@ -442,7 +442,7 @@ class SPDBuresWasserstein(SPDManifold):
             tv_b: tangent vector at bpt, a Symmetric matrix.
 
         Returns:
-            returns PT_{s_pt ->e_pt}(tv).
+            returns <tv_a, tv_b>_{bpt}.
         """
         lyp = self.lyapunov(bpt, tv_a)
         return 0.5 * self.trace_matprod(lyp, tv_b)
@@ -509,7 +509,7 @@ class SPDGeneralizedBuresWasserstein(SPDManifold):
             tv_b: tangent vector at bpt, a Symmetric matrix.
 
         Returns:
-            returns PT_{s_pt ->e_pt}(tv).
+            returns <tv_a, tv_b>_{bpt}.
         """
         lyp = self.generalized_lyapunov(self.M, bpt, tv_a)
         return 0.5 * self.trace_matprod(lyp, tv_b)
@@ -551,7 +551,7 @@ class SPDEuclidean(SPDManifold):
             tv_b: tangent vector at bpt, a Symmetric matrix.
 
         Returns:
-            returns PT_{s_pt ->e_pt}(tv).
+            returns <tv_a, tv_b>_{bpt}.
         """
         return self.trace_matprod(tv_a, tv_b)
 

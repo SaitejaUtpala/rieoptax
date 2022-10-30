@@ -102,7 +102,7 @@ class PoincareBall(Hyperbolic):
         ms = self.mobius_add(pt_a, -1 * pt_b)
         return ms
 
-    def gyration_op(self, pt_a: Array, pt_b: Array, vec: Array) -> Array:
+    def gyra(self, pt_a: Array, pt_b: Array, vec: Array) -> Array:
         gb = self.mobius_add(pt_b, vec)
         ggb = self.mobius_add(pt_b, gb)
         gab = self.mobius_add(pt_a, pt_b)
@@ -147,6 +147,16 @@ class PoincareBall(Hyperbolic):
         return log
 
     def inp(self, bpt: Array, tv_a : Array, tv_b : Array) -> float:
+        """Inner product between two tangent vectors at a point on manifold.
+
+        Args:
+            bpt: point on the manifold.
+            tv_a: tangent vector at bpt.
+            tv_b: tangent vector at bpt.
+
+        Returns:
+            returns <tv_a, tv_b>_{bpt}.
+        """
         inp = (self.cf(bpt)**2) * jnp.inner(tv_a, tv_b)
         return inp
 
@@ -161,7 +171,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        pt = self.gyration_op(e_pt, -1 * s_pt, tv)
+        pt = self.gyra(e_pt, -1 * s_pt, tv)
         return pt
 
     def dist(self, pt_a: Array, pt_b: Array) -> Array:
