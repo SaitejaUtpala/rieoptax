@@ -288,7 +288,7 @@ class SPDAffineInvariant(SPDManifold):
         bpt_inv = jnp.linalg.inv(bpt)
         return self.trace_matprod(bpt_inv @ tv_a, bpt_inv @ tv_b)
 
-    def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
+    def ptrans(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:
@@ -300,8 +300,8 @@ class SPDAffineInvariant(SPDManifold):
             returns PT_{s_pt ->e_pt}(tv).
         """
         out = self.sqrtm_ABinv(e_pt, s_pt)
-        pt = out @ tv @ out.T
-        return pt
+        ptrans = out @ tv @ out.T
+        return ptrans
 
     def dist(self, pt_a: Array, pt_b: Array) -> float:
         """Distance between two points on the manifold induced by Riemannian metric.
@@ -354,7 +354,7 @@ class SPDLogEuclidean(SPDManifold):
         logm_p = self.logm(pt)
         return self.diff_expm(logm_bp, logm_p - logm_bp)
 
-    def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
+    def ptrans(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:
@@ -603,7 +603,7 @@ class SPDEuclidean(SPDManifold):
         """
         return self.norm(pt_a - pt_b)
 
-    def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
+    def ptrans(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:

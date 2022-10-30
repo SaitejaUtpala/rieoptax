@@ -97,13 +97,13 @@ class _Hypergyroplane(nn.Module):
         normal = self.param("normal", self.normal_init, (input_shape,))
         point = self.param("point@" + str(manifold), self.point_init, (input_shape,))
         manifold = PoincareBall(input_shape, self.curv)
-        pt = manifold.pt 
-        sdist  = vmap(manifold.sdist_to_gyroplanes, in_axes=(None, None, 0))
+        ptrans = manifold.ptrans
+        sdist = vmap(manifold.sdist_to_gyroplanes, in_axes=(None, None, 0))
         norm = manifold.norm
 
-        tv_pt = pt(manifold.ref_point, point, normal)
-        sdist = sdist(pt, tv_pt, inputs) 
-        logits =  norm(tv_pt) * sdist
+        tv_point = ptrans(manifold.ref_point, point, normal)
+        sdist = sdist(point, tv_point, inputs)
+        logits = norm(tv_point) * sdist
         return logits
 
 
@@ -118,6 +118,7 @@ class PoincareMLR(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
+
     num_classes: int
     curv: float = -1.0
     in_radii: float = 1 - 1e-8

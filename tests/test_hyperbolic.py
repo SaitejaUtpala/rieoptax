@@ -8,10 +8,18 @@ from rieoptax.geometry.hyperbolic import PoincareBall
 
 class TestPoincareBall(absltest.TestCase):
     manifold = PoincareBall(2)
+    sqrt2 = jnp.sqrt(2)
+    bpt = jnp.array([0.1/sqrt2, 0.1/sqrt2])
+    tv = jnp.array([1.0, 2.0])
+    pt = jnp.array([0.2/sqrt2, 0.2/sqrt2])
     
     def test_mobius_matvec(self, M, pt):
+        pass 
 
-    def test_mobius_add(self, pt_a, pt_b ):
+    def test_mobius_add(self):
+        exptd = jnp.array([[0.07215376, 0.07215376]])
+        assert_trees_all_close(self.manifold.mobius_add(self.bpt,self.pt), exptd)
+
 
     def test_exp(self, ):
         assert_trees_all_close(self.manifold.exp(bp, tv), expected)
@@ -27,6 +35,11 @@ class TestPoincareBall(absltest.TestCase):
 
     def test_pt(self, ):
         assert_trees_all_close(self.manifold.pt(p_a, p_b, tv), exp)
+
+    def test_sdist_to_gyroplanes(self):
+        exptd = jnp.array(0.19441889)
+        assert_trees_all_close(self.manifold.sdist_to_gyroplanes(self.bpt, self.tv, self.pt), exptd)
+
 
 
 

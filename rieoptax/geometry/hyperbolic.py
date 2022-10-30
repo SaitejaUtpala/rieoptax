@@ -199,7 +199,7 @@ class PoincareBall(Hyperbolic):
         """
         return jnp.sqrt(self.inp(bpt, tv, tv))
 
-    def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
+    def ptrans(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:
@@ -210,8 +210,8 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        pt = self.gyra(e_pt, -1 * s_pt, tv) * (self.cf(s_pt) / self.cf(e_pt))
-        return pt
+        ptrans = self.gyra(e_pt, -1 * s_pt, tv) * (self.cf(s_pt) / self.cf(e_pt))
+        return ptrans
 
     def dist(self, pt_a: Array, pt_b: Array) -> Array:
         """Distance between two points on the manifold induced by Riemannian metric.
@@ -375,7 +375,7 @@ class LorentzHyperboloid(Hyperbolic):
         log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy)) * (pt - (k_xy * bpt))
         return log
 
-    def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
+    def ptrans(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:
