@@ -78,7 +78,7 @@ class PoincareBall(Hyperbolic):
         return reg_pt
 
     def mobius_add(self, pt_a: Array, pt_b: Array) -> Array:
-        """Mobius add operation
+        """Mobius addition operation.
 
         Args:
             pt_a: point on the manifold.
@@ -99,6 +99,15 @@ class PoincareBall(Hyperbolic):
         return ma
 
     def mobius_sub(self, pt_a: Array, pt_b: Array) -> Array:
+        """Mobius subtraction operation.
+
+        Args:
+            pt_a: point on the manifold.
+            pt_b: point on the manifold.
+
+        Returns:
+            returns a new point on the manifold.
+        """
         ms = self.mobius_add(pt_a, -1 * pt_b)
         return ms
 
@@ -119,6 +128,14 @@ class PoincareBall(Hyperbolic):
         return self.mobius_add(-1 * ab, abvec)
 
     def cf(self, pt: Array) -> float:
+        """Conformal factor.
+
+        Args:
+            pt: point on the manifold.
+
+        Returns:
+            returns conformal factor at pt
+        """
         cp_norm = self.curv * jnp.linalg.norm(pt) ** 2
         cf = 2 / (1 + cp_norm)
         return cf
