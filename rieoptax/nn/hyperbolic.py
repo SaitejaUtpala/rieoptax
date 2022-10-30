@@ -107,7 +107,7 @@ class _Hypergyroplane(nn.Module):
         norm = jnp.linalg.norm(normal_at_point)
         add = mobius_add(point, inputs)
         dist_nomin = 2 * sc * jnp.inner(add, normal_at_point)
-        dist_denom = (1 - self.curv * jnp.linalg.norm(add) ** 2) * norm
+        dist_denom = (1 + self.curv * jnp.linalg.norm(add) ** 2) * norm
         dist = jnp.arcsinh(dist_nomin / dist_denom)
         logits =  (cf(point) * norm * dist)/sc 
         return logits
