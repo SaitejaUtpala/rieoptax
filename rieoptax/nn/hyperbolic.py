@@ -98,18 +98,12 @@ class _Hypergyroplane(nn.Module):
         point = self.param("point@" + str(manifold), self.point_init, (input_shape,))
         manifold = PoincareBall(input_shape, self.curv)
         pt = manifold.pt 
-        mobius_add = vmap(manifold.mobius_add, in_axes=(None,0))
-        cf = manifold.cf
+        sdist  = vmap(manifold.sdist_to_gyroplanes, in_axes=(None, None, 0))
+        norm = manifold.norm
 
-
-        sc = manifold.abs_sqrt_curv
-        normal_at_point = pt(manifold.ref_point, point, normal)
-        norm = jnp.linalg.norm(normal_at_point)
-        add = mobius_add(point, inputs)
-        dist_nomin = 2 * sc * jnp.inner(add, normal_at_point)
-        dist_denom = (1 + self.curv * jnp.linalg.norm(add) ** 2) * norm
-        dist = jnp.arcsinh(dist_nomin / dist_denom)
-        logits =  (cf(point) * norm * dist)/sc 
+        tv_pt = pt(manifold.ref_point, point, normal)
+        sdist = sdist(pt, tv_pt, inputs) 
+        logits =  norm(tv_pt) * sdist
         return logits
 
 
