@@ -33,7 +33,7 @@ class PoincareDense(nn.Module):
 
     features: int
     curv: float = -1.0
-    in_radii: float = 1-1e-8
+    in_radii: float = 1 - 1e-8
     out_radii: float = 1e-15
     use_bias: bool = True
     dtype: Optional[Dtype] = None
@@ -110,11 +110,31 @@ class Hypergyroplanes(nn.Module):
 
 class PoincareMLR(nn.Module):
     num_classes: int
+    curv: float = -1.0
+    in_radii: float = 1 - 1e-8
+    out_radii: float = 1e-15
+    dtype: Optional[Dtype] = None
+    param_dtype: Dtype = jnp.float32
+    normal_init: Callable = nn.initializers.lecun_normal()
+    point_init: Callable = zeros
 
     @nn.compact
     def __call__(self, inputs: Array) -> Array:
         x = inputs
-        return jnp.hstack([Hypergyroplanes()(x) for _ in range(self.num_classes)])
+        return jnp.hstack(
+            [
+                Hypergyroplanes(
+                    curv=self.curv,
+                    in_radii=self.in_radii,
+                    out_radii=self.out_radii,
+                    dtype=self.dtype,
+                    param_dtype=self.param_dtype,
+                    normal_init=self.normal_init,
+                    point_int=self.point_init,
+                )(x)
+                for _ in range(self.num_classes)
+            ]
+        )
 
 
 class PoincareRNNCell(nn.Module):
@@ -165,7 +185,7 @@ class PoincareRNNCell(nn.Module):
         regularize = vmap(manifold.regularize)
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
         mobius_gate_fn = vmap(manifold.mobius_f(self.gate_fn))
-        
+
         dense = partial(
             PoincareDense,
             features=hidden_features,
