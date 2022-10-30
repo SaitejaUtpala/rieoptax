@@ -288,6 +288,16 @@ class LorentzHyperboloid(Hyperbolic):
         return lip
 
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
+        """Inner product between two tangent vectors at a point on manifold.
+
+        Args:
+            bpt: point on the manifold.
+            tv_a: tangent vector at bpt.
+            tv_b: tangent vector at bpt.
+
+        Returns:
+            returns <tv_a, tv_b>_{bpt}.
+        """
         return self.lorentz_inp(tv_a, tv_b)
 
     def dist(self, pt_a: Array, pt_b: Array) -> Array:
