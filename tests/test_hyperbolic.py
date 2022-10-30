@@ -13,28 +13,18 @@ class TestPoincareBall(absltest.TestCase):
     tv = jnp.array([1.0, 2.0])
     pt = jnp.array([0.2/sqrt2, 0.2/sqrt2])
     
-    def test_mobius_matvec(self, M, pt):
-        pass 
-
+   
     def test_mobius_add(self):
         exptd = jnp.array([[0.07215376, 0.07215376]])
         assert_trees_all_close(self.manifold.mobius_add(self.bpt,self.pt), exptd)
 
+    def test_dist(self):
+        exptd = jnp.array(0.20479442)
+        assert_trees_all_close(self.manifold.dist(self.bpt, self.pt), exptd)
 
-    def test_exp(self, ):
-        assert_trees_all_close(self.manifold.exp(bp, tv), expected)
-
-    def test_log(self, ):
-        assert_trees_all_close(self.manifold.log(bp, p), exp)
-
-    def test_inp(self, ):
-        assert_trees_all_close(self.manifold.inp(bp, tv_a, tv_b), exp)
-
-    def test_dist(self, ):
-        ssert_trees_all_close(self.manifold.dist(p_a, p_b), exp)
-
-    def test_pt(self, ):
-        assert_trees_all_close(self.manifold.pt(p_a, p_b, tv), exp)
+    def test_ptrans(self):
+        exptd = jnp.array([0.96969694, 1.9393936 ])
+        assert_trees_all_close(self.manifold.pt(self.bpt, self.pt, self.tv), exptd)
 
     def test_sdist_to_gyroplanes(self):
         exptd = jnp.array(0.19441889)
