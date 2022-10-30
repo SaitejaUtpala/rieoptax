@@ -187,6 +187,18 @@ class PoincareBall(Hyperbolic):
         inp = (self.cf(bpt) ** 2) * jnp.inner(tv_a, tv_b)
         return inp
 
+    def norm(self, bpt: Array, tv: Array) -> float:
+        """Norm of tangent vector at a point on manifold.
+
+        Args:
+            bpt: point on the manifold.
+            tv: tangent vector at bpt.
+
+        Returns:
+            returns ||tv||_{bpt}.
+        """
+        return jnp.sqrt(self.inp(bpt, tv, tv))
+
     def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
@@ -216,7 +228,7 @@ class PoincareBall(Hyperbolic):
             * (1 + self.curv * jnp.linalg.norm(pt_b) ** 2)
         )
         dist = jnp.arccosh(1 - t) / (sqrt(abs(self.curv)))
-        return dist 
+        return dist
 
     def mobius_matvec(self, mat: Array, vec: Array) -> Array:
         """Mobius matrix vector multiplication.
@@ -276,8 +288,8 @@ class PoincareBall(Hyperbolic):
         """
         return egrad / (self.cf(bpt) ** 2)
 
-    def sdist_to_gyroplanes(self, bpt : Array, tv : Array, pt : Array ) -> Array :
-        """Signed distance to hypergyroplanes. 
+    def sdist_to_gyroplanes(self, bpt: Array, tv: Array, pt: Array) -> Array:
+        """Signed distance to hypergyroplanes.
 
         Args:
             bpt: point on the manifold.
@@ -288,14 +300,12 @@ class PoincareBall(Hyperbolic):
             distance from 'pt' to hypergyroplane defined by 'bpt', 'tv'.
         """
         norm = jnp.linalg.norm(tv)
-        add = self.mobius_add(-1*bpt, pt)
+        add = self.mobius_add(-1 * bpt, pt)
         asc = self.abs_sqrt_curv
         dist_nomin = 2 * asc * jnp.inner(add, tv)
         dist_denom = (1 + self.curv * jnp.linalg.norm(add) ** 2) * norm
-        sdist = jnp.arcsinh(dist_nomin / dist_denom) / asc 
+        sdist = jnp.arcsinh(dist_nomin / dist_denom) / asc
         return sdist
-
-
 
 
 class LorentzHyperboloid(Hyperbolic):
