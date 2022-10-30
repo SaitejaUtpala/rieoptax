@@ -103,6 +103,16 @@ class PoincareBall(Hyperbolic):
         return ms
 
     def gyra(self, pt_a: Array, pt_b: Array, vec: Array) -> Array:
+        """Gyration operator.
+
+        Args:
+            pt_a: point on the manifold.
+            pt_b: point on the manifold.
+            vec: any vector.
+
+        Returns:
+            returns gyr[pt_a, pt_b](vec)
+        """
         bvec = self.mobius_add(pt_b, vec)
         abvec = self.mobius_add(pt_a, bvec)
         ab = self.mobius_add(pt_a, pt_b)
@@ -189,6 +199,7 @@ class PoincareBall(Hyperbolic):
             * (1 + self.curv * jnp.linalg.norm(pt_b) ** 2)
         )
         dist = jnp.arccosh(1 - t) / (sqrt(abs(self.curv)))
+        return dist 
 
     def mobius_matvec(self, mat: Array, vec: Array) -> Array:
         """Mobius matrix vector multiplication.
