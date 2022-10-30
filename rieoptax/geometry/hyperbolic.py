@@ -51,8 +51,8 @@ class PoincareBall(Hyperbolic):
         self,
         m: int,
         curv: float = -1.0,
-        in_radii : float = 1e-15,
-        out_radii : float= 1e-8,
+        in_radii: float = 1e-15,
+        out_radii: float = 1e-8,
     ):
         self.m = m
         self.curv = curv
@@ -88,7 +88,7 @@ class PoincareBall(Hyperbolic):
             returns a new point on the manifold.
         """
         inp = jnp.inner(pt_a, pt_b)
-        
+
         a_norm2 = jnp.linalg.norm(pt_a) ** 2
         b_norm2 = jnp.linalg.norm(pt_b) ** 2
         numerator = (1 - 2 * self.curv * inp - self.curv * b_norm2) * pt_a + (
@@ -124,7 +124,7 @@ class PoincareBall(Hyperbolic):
             returns Exp_{bpt}(tv).
         """
         t = sqrt(abs(self.curv)) * jnp.linalg.norm(tv)
-        pt = jnp.tanh((t * self.cf(bpt)) / 2  ) * (tv/t)
+        pt = jnp.tanh((t * self.cf(bpt)) / 2) * (tv / t)
         exp = self.mobius_add(bpt, pt)
         return exp
 
@@ -146,7 +146,7 @@ class PoincareBall(Hyperbolic):
         log = mul * (ma / norm_ma)
         return log
 
-    def inp(self, bpt: Array, tv_a : Array, tv_b : Array) -> float:
+    def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> float:
         """Inner product between two tangent vectors at a point on manifold.
 
         Args:
@@ -157,7 +157,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns <tv_a, tv_b>_{bpt}.
         """
-        inp = (self.cf(bpt)**2) * jnp.inner(tv_a, tv_b)
+        inp = (self.cf(bpt) ** 2) * jnp.inner(tv_a, tv_b)
         return inp
 
     def pt(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
@@ -171,7 +171,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        pt = self.gyra(e_pt, -1 * s_pt, tv) * (self.cf(s_pt)/self.cf(e_pt))
+        pt = self.gyra(e_pt, -1 * s_pt, tv) * (self.cf(s_pt) / self.cf(e_pt))
         return pt
 
     def dist(self, pt_a: Array, pt_b: Array) -> Array:
@@ -185,9 +185,11 @@ class PoincareBall(Hyperbolic):
             returns distance between pt_a, pt_b.
         """
         t = (2 * self.curv * jnp.linalg.norm(pt_a - pt_b) ** 2) / (
-            (1 + self.curv * jnp.inner(pt_a) ** 2)(1 + self.curv * jnp.inner(pt_b) ** 2)
+            (1 + self.curv * jnp.linalg.norm(pt_a) ** 2)(
+                1 + self.curv * jnp.linalg.norm(pt_b) ** 2
+            )
         )
-        dist = jnp.arccosh(1 - t) / (jnp.sqrt(jnp.abs(self.curv)))
+        dist = jnp.arccosh(1 - t) / (sqrt(abs(self.curv)))
 
     def mobius_matvec(self, mat: Array, vec: Array) -> Array:
         """Mobius matrix vector multiplication.
