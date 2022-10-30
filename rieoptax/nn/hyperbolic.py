@@ -138,7 +138,7 @@ class PoincareMLR(nn.Module):
         x = inputs
         return jnp.hstack(
             [
-                _Hypergyroplanes(
+                _Hypergyroplane(
                     curv=self.curv,
                     in_radii=self.in_radii,
                     out_radii=self.out_radii,
