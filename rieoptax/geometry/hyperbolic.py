@@ -103,10 +103,10 @@ class PoincareBall(Hyperbolic):
         return ms
 
     def gyra(self, pt_a: Array, pt_b: Array, vec: Array) -> Array:
-        gb = self.mobius_add(pt_b, vec)
-        ggb = self.mobius_add(pt_b, gb)
-        gab = self.mobius_add(pt_a, pt_b)
-        return -1 * self.mobius_add(gab, ggb)
+        bvec = self.mobius_add(pt_b, vec)
+        abvec = self.mobius_add(pt_a, bvec)
+        ab = self.mobius_add(pt_a, pt_b)
+        return -1 * self.mobius_add(ab, abvec)
 
     def cf(self, pt: Array) -> float:
         cp_norm = self.curv * jnp.linalg.norm(pt) ** 2
@@ -171,7 +171,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        pt = self.gyra(e_pt, -1 * s_pt, tv)
+        pt = self.gyra(e_pt, -1 * s_pt, tv) * (self.cf(s_pt)/self.cf(e_pt))
         return pt
 
     def dist(self, pt_a: Array, pt_b: Array) -> Array:
