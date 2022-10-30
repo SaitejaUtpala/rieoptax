@@ -276,6 +276,27 @@ class PoincareBall(Hyperbolic):
         """
         return egrad / (self.cf(bpt) ** 2)
 
+    def sdist_to_gyroplanes(self, bpt : Array, tv : Array, pt : Array ) -> Array :
+        """Signed distance to hypergyroplanes. 
+
+        Args:
+            bpt: point on the manifold.
+            tv: tangent vector at base point 'bpt'.
+            pt: point on the manifold
+
+        Returns:
+            distance from 'pt' to hypergyroplane defined by 'bpt', 'tv'.
+        """
+        norm = jnp.linalg.norm(tv)
+        add = self.mobius_add(-1*bpt, pt)
+        asc = self.abs_sqrt_curv
+        dist_nomin = 2 * asc * jnp.inner(add, tv)
+        dist_denom = (1 + self.curv * jnp.linalg.norm(add) ** 2) * norm
+        sdist = jnp.arcsinh(dist_nomin / dist_denom) / asc 
+        return sdist
+
+
+
 
 class LorentzHyperboloid(Hyperbolic):
     def __init__(self, m, curv=-1):
