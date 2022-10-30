@@ -106,7 +106,7 @@ class PoincareBall(Hyperbolic):
         bvec = self.mobius_add(pt_b, vec)
         abvec = self.mobius_add(pt_a, bvec)
         ab = self.mobius_add(pt_a, pt_b)
-        return -1 * self.mobius_add(ab, abvec)
+        return self.mobius_add(-1 * ab, abvec)
 
     def cf(self, pt: Array) -> float:
         cp_norm = self.curv * jnp.linalg.norm(pt) ** 2
