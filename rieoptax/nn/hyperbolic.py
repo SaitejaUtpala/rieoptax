@@ -138,7 +138,7 @@ class PoincareMLR(nn.Module):
                     dtype=self.dtype,
                     param_dtype=self.param_dtype,
                     normal_init=self.normal_init,
-                    point_int=self.point_init,
+                    point_init=self.point_init,
                 )(x)
                 for _ in range(self.num_classes)
             ]
