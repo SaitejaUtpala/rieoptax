@@ -71,10 +71,9 @@ class PoincareBall(Hyperbolic):
     def regularize(self, pt: Array) -> Array:
         def _regularize(pt):
             norm = jnp.linalg.norm(pt)
-            in_pt = pt + max(norm, self.in_radii)-norm
-            out_pt =  in_pt/max(norm/(1-self.out_radii),1)
+            in_pt = pt + max(norm, self.in_radii) - norm
+            out_pt = in_pt / max(norm / (1 - self.out_radii), 1)
             return out_pt
-
 
         reg_pt = straight_through_f(_regularize)(pt)
         return reg_pt
@@ -87,20 +86,18 @@ class PoincareBall(Hyperbolic):
             pt_b: point on the manifold.
 
         Returns:
-            returns a new point on the manifold.
+            returns a new vector.
         """
-        pt_a = self.regularize(pt_a)
-        pt_b = self.regularize(pt_b)
-        inp = jnp.inner(pt_a, pt_b)
-        a_norm2 = jnp.linalg.norm(pt_a) ** 2
-        b_norm2 = jnp.linalg.norm(pt_b) ** 2
-        numerator = (1 - 2 * self.curv * inp - self.curv * b_norm2) * pt_a + (
-            1 + self.curv * a_norm2
-        ) * pt_b
-        denominator = 1 - 2 * self.curv * inp + self.curv**2 * b_norm2 * a_norm2
+        c = self.curv
+        x = self.regularize(pt_a)
+        y = self.regularize(pt_b)
+        xy = jnp.inner(x, y)
+        x2 = jnp.linalg.norm(pt_a) ** 2
+        y2 = jnp.linalg.norm(pt_b) ** 2
+        numerator = (1 - 2 * c * xy - self.curv * y2) * pt_a + (1 + c * x2) * y
+        denominator = 1 - 2 * c * xy + c**2 * y2 * x2
         ma = numerator / denominator
         return self.regularize(ma)
-        
 
     def mobius_sub(self, pt_a: Array, pt_b: Array) -> Array:
         """Mobius subtraction operation.
@@ -124,12 +121,23 @@ class PoincareBall(Hyperbolic):
             vec: any vector.
 
         Returns:
-            returns gyr[pt_a, pt_b](vec)
+            returns gyr[pt_a, pt_b](vec) which is again any vector
         """
-        bvec = self.mobius_add(pt_b, vec)
-        abvec = self.mobius_add(pt_a, bvec)
-        ab = self.mobius_add(pt_a, pt_b)
-        return self.mobius_add(-1 * ab, abvec)
+        c = self.curv
+        x = self.regularize(pt_a)
+        y = self.regularize(pt_b)
+        z = vec
+        xy = jnp.inner(x, y)
+        xz = jnp.inner(x, z)
+        yz = jnp.inner(y, z)
+        x2 = jnp.linalg.norm(x) ** 2
+        y2 = jnp.linalg.norm(y) ** 2
+
+        nomin1 = ((-1 * c * xz * y2) - yz * (1 - 2 * c * xy)) * x
+        nomin2 = (-1 * c * yz * x2 + xz) * y
+        denom = 1 - 2 * xy + c**2 * x2 * y2
+        res = z + 2 * c * ((nomin1 + nomin2) / denom)
+        return res
 
     def cf(self, pt: Array) -> float:
         """Conformal factor.
@@ -140,8 +148,7 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns conformal factor at pt
         """
-        cp_norm = self.curv * jnp.linalg.norm(pt) ** 2
-        cf = 2 / (1 + cp_norm)
+        cf = 2 / (1 + self.curv * jnp.linalg.norm(pt) ** 2)
         return cf
 
     def exp(self, bpt: Array, tv: Array) -> Array:
@@ -156,7 +163,7 @@ class PoincareBall(Hyperbolic):
         """
         t = sqrt(abs(self.curv)) * jnp.linalg.norm(tv)
         pt = jnp.tanh((t * self.cf(bpt)) / 2) * (tv / t)
-        exp = self.mobius_add(bpt, pt)
+        exp = self.regularize(self.mobius_add(bpt, pt))
         return exp
 
     def log(self, bpt: Array, pt: Array) -> Array:
@@ -203,7 +210,7 @@ class PoincareBall(Hyperbolic):
         """
         return jnp.sqrt(self.inp(bpt, tv, tv))
 
-    def ptrans(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
+    def ptransp(self, s_pt: Array, e_pt: Array, tv: Array) -> Array:
         """Parallel Transport.
 
         Args:
@@ -214,8 +221,8 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        ptrans = self.gyra(e_pt, -1 * s_pt, tv) * (self.cf(s_pt) / self.cf(e_pt))
-        return ptrans
+        ptransp = self.gyra(e_pt, -1 * s_pt, tv) * (self.cf(s_pt) / self.cf(e_pt))
+        return ptransp
 
     def dist(self, pt_a: Array, pt_b: Array) -> Array:
         """Distance between two points on the manifold induced by Riemannian metric.

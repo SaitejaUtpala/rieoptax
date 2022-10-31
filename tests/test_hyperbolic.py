@@ -22,7 +22,7 @@ class TestPoincareBall(absltest.TestCase):
 
     def test_ptrans(self):
         exptd = jnp.array([0.96969694, 1.9393936])
-        assert_trees_all_close(self.manifold.ptrans(self.bpt, self.pt, self.tv), exptd)
+        assert_trees_all_close(self.manifold.ptransp(self.bpt, self.pt, self.tv), exptd)
 
     def test_sdist_to_gyroplanes(self):
         exptd = jnp.array(0.19441889)
@@ -45,4 +45,7 @@ class TestPoincareBall(absltest.TestCase):
         )
         assert_trees_all_close(
             jnp.linalg.norm(self.manifold.regularize(one)) != 1.0, exptd
+        )
+        assert_trees_all_close(
+            jnp.linalg.norm(self.manifold.regularize(self.bpt)) == 0.1, exptd
         )
