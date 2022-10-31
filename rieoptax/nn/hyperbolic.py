@@ -82,8 +82,8 @@ class _Hypergyroplane(nn.Module):
     """
 
     curv: float = -1.0
-    in_radii: float = 1e-9
-    out_radii: float = 1-1e-5
+    in_radii: float = 1e-12
+    out_radii: float = 1e-5
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
     normal_init: Callable = nn.initializers.lecun_normal()
@@ -95,7 +95,7 @@ class _Hypergyroplane(nn.Module):
         normal = self.param("normal", self.normal_init, (input_shape,))
         point = self.param("point@" + str(manifold), self.point_init, (input_shape,))
         manifold = PoincareBall(input_shape, self.curv, self.in_radii, self.out_radii)
-       
+
         sdist = vmap(manifold.sdist_to_gyroplanes, in_axes=(None, None, 0))
         norm = manifold.norm
         ptrans = manifold.ptrans
@@ -119,8 +119,8 @@ class PoincareMLR(nn.Module):
 
     num_classes: int
     curv: float = -1.0
-    in_radii: float = 1 - 1e-8
-    out_radii: float = 1e-15
+    in_radii: float = 1e-12
+    out_radii: float = 1e-5
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
     normal_init: Callable = nn.initializers.lecun_normal()
@@ -161,8 +161,8 @@ class PoincareRNNCell(nn.Module):
     """
 
     curv: float = -1.0
-    in_radii: float = 1 - 1e-8
-    out_radii: float = 1e-15
+    in_radii: float = 1e-12
+    out_radii: float = 1e-5
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
     kernel_init: Callable = default_kernel_init
@@ -184,9 +184,11 @@ class PoincareRNNCell(nn.Module):
         Returns:
         A tuple with the new carry and the output.
         """
-        h = carry 
+        h = carry
         hidden_features = h.shape[-1]
-        manifold = PoincareBall(hidden_features, self.curv)
+        manifold = PoincareBall(
+            hidden_features, self.curv, self.in_radii, self.out_radii
+        )
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
         mobius_gate_fn = vmap(manifold.mobius_f(self.gate_fn))
 
@@ -199,7 +201,9 @@ class PoincareRNNCell(nn.Module):
         )
         dense_h = partial(dense, use_bias=False)
         dense_i = partial(dense, use_bias=True)
-        new_h = mobius_gate_fn((mobius_add(dense_i(name="ih")(inputs), dense_h(name="hh")(h))))
+        new_h = mobius_gate_fn(
+            (mobius_add(dense_i(name="ih")(inputs), dense_h(name="hh")(h)))
+        )
         return new_h, new_h
 
     @staticmethod
@@ -225,8 +229,6 @@ class PoincareGRUCell(nn.Module):
 
     Attributes:
         curv: curvature of the poincare manifold (default: -1).
-        eps: eps to be added inputs, h while doing operations, done
-            to increase numerical stability of operations (default: 1E-15).
         gate_fn: activation function used for gates (default: sigmoid).
         activation_fn: activation function used for output and memory update
             (default: tanh).
@@ -238,8 +240,8 @@ class PoincareGRUCell(nn.Module):
     """
 
     curv: float = -1.0
-    in_radii: float = 1 - 1e-8
-    out_radii: float = 1e-15
+    in_radii: float = 1e-12
+    out_radii: float = 1e-5
     gate_fn: Callable[..., Any] = sigmoid
     activation_fn: Callable[..., Any] = tanh
     kernel_init: Callable = default_kernel_init
@@ -262,7 +264,9 @@ class PoincareGRUCell(nn.Module):
         """
         h = carry
         hidden_features = h.shape[-1]
-        manifold = PoincareBall(hidden_features, self.curv)
+        manifold = PoincareBall(
+            hidden_features, self.curv, self.in_radii, self.out_radii
+        )
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
         mobius_pw_prod = vmap(manifold.mobius_pw_prod, in_axes=(0, 0))
         mobius_gate_fn = vmap(manifold.mobius_f(self.gate_fn))
