@@ -33,7 +33,7 @@ class PoincareDense(nn.Module):
 
     features: int
     curv: float = -1.0
-    in_radii: float = 1 - 1e-8
+    in_radii: float = 1-1e-6
     out_radii: float = 1e-15
     use_bias: bool = True
     dtype: Optional[Dtype] = None
@@ -44,7 +44,6 @@ class PoincareDense(nn.Module):
     @nn.compact
     def __call__(self, inputs: Array) -> Array:
         manifold = PoincareBall(self.features, self.curv)
-        regularize = vmap(manifold.regularize)
         mobius_matvec = vmap(manifold.mobius_matvec, in_axes=(None, 0))
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, None))
         # (TODO) : make it consistent with flax kernel shape order i.e., transpose.
@@ -64,11 +63,10 @@ class PoincareDense(nn.Module):
         else:
             bias = None
         inputs, kernel, bias = promote_dtype(inputs, kernel, bias, dtype=self.dtype)
-        inputs = regularize(inputs)
         y = mobius_matvec(kernel, inputs)
         if self.use_bias:
-            y = mobius_add(regularize(y), bias)
-        return regularize(y)
+            y = mobius_add(y, bias)
+        return y
 
 
 class _Hypergyroplane(nn.Module):
@@ -84,8 +82,8 @@ class _Hypergyroplane(nn.Module):
     """
 
     curv: float = -1.0
-    in_radii: float = 1 - 1e-8
-    out_radii: float = 1e-15
+    in_radii: float = 1e-9
+    out_radii: float = 1-1e-5
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
     normal_init: Callable = nn.initializers.lecun_normal()
@@ -96,11 +94,11 @@ class _Hypergyroplane(nn.Module):
         input_shape = inputs.shape[-1]
         normal = self.param("normal", self.normal_init, (input_shape,))
         point = self.param("point@" + str(manifold), self.point_init, (input_shape,))
-        manifold = PoincareBall(input_shape, self.curv)
-        ptrans = manifold.ptrans
+        manifold = PoincareBall(input_shape, self.curv, self.in_radii, self.out_radii)
+       
         sdist = vmap(manifold.sdist_to_gyroplanes, in_axes=(None, None, 0))
         norm = manifold.norm
-
+        ptrans = manifold.ptrans
         tv_point = ptrans(manifold.ref_point, point, normal)
         sdist = sdist(point, tv_point, inputs)
         logits = norm(tv_point) * sdist
@@ -192,7 +190,6 @@ class PoincareRNNCell(nn.Module):
         inputs = inputs + self.eps
         hidden_features = h.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
-        regularize = vmap(manifold.regularize)
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
         mobius_gate_fn = vmap(manifold.mobius_f(self.gate_fn))
 
@@ -205,9 +202,7 @@ class PoincareRNNCell(nn.Module):
         )
         dense_h = partial(dense, use_bias=False)
         dense_i = partial(dense, use_bias=True)
-        new_h = mobius_gate_fn(
-            regularize(mobius_add(dense_i(name="ih")(inputs), dense_h(name="hh")(h)))
-        )
+        new_h = mobius_gate_fn((mobius_add(dense_i(name="ih")(inputs), dense_h(name="hh")(h))))
         return new_h, new_h
 
     @staticmethod

@@ -87,8 +87,9 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns a new point on the manifold.
         """
+        pt_a = self.regularize(pt_a)
+        pt_b = self.regularize(pt_b)
         inp = jnp.inner(pt_a, pt_b)
-
         a_norm2 = jnp.linalg.norm(pt_a) ** 2
         b_norm2 = jnp.linalg.norm(pt_b) ** 2
         numerator = (1 - 2 * self.curv * inp - self.curv * b_norm2) * pt_a + (
@@ -96,7 +97,8 @@ class PoincareBall(Hyperbolic):
         ) * pt_b
         denominator = 1 - 2 * self.curv * inp + self.curv**2 * b_norm2 * a_norm2
         ma = numerator / denominator
-        return ma
+        return self.regularize(ma)
+        
 
     def mobius_sub(self, pt_a: Array, pt_b: Array) -> Array:
         """Mobius subtraction operation.
@@ -240,13 +242,15 @@ class PoincareBall(Hyperbolic):
         Returns:
             returns mobius version of mat @ vec which belongs to the poincare ball.
         """
+        vec = self.regularize(vec)
         matvec = mat @ vec
         matvec_norm = jnp.linalg.norm(matvec)
         vec_norm = jnp.linalg.norm(vec)
         coeff = (1 / self.abs_sqrt_curv) * jnp.tanh(
             matvec_norm / vec_norm * jnp.arctanh(self.abs_sqrt_curv * vec_norm)
         )
-        return coeff * matvec / matvec_norm
+        out = coeff * matvec / matvec_norm
+        return self.regularize(out)
 
     def mobius_pw_prod(self, pt_a: Array, pt_b: Array) -> Array:
         """Mobius point wise product.
@@ -299,6 +303,9 @@ class PoincareBall(Hyperbolic):
         Returns:
             distance from 'pt' to hypergyroplane defined by 'bpt', 'tv'.
         """
+        bpt = self.regularize(bpt)
+        pt = self.regularize(pt)
+        
         norm = jnp.linalg.norm(tv)
         add = self.mobius_add(-1 * bpt, pt)
         asc = self.abs_sqrt_curv
