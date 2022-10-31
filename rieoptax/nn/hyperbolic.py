@@ -33,8 +33,8 @@ class PoincareDense(nn.Module):
 
     features: int
     curv: float = -1.0
-    in_radii: float = 1-1e-6
-    out_radii: float = 1e-15
+    in_radii: float = 1e-12
+    out_radii: float = 1e-5
     use_bias: bool = True
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
@@ -43,7 +43,7 @@ class PoincareDense(nn.Module):
 
     @nn.compact
     def __call__(self, inputs: Array) -> Array:
-        manifold = PoincareBall(self.features, self.curv)
+        manifold = PoincareBall(self.features, self.curv, self.in_radii, self.out_radii)
         mobius_matvec = vmap(manifold.mobius_matvec, in_axes=(None, 0))
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, None))
         # (TODO) : make it consistent with flax kernel shape order i.e., transpose.
