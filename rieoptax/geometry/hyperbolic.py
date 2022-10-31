@@ -51,8 +51,8 @@ class PoincareBall(Hyperbolic):
         self,
         m: int,
         curv: float = -1.0,
-        in_radii: float = 1e-9,
-        out_radii: float = 1e-8,
+        in_radii: float = 1e-12,
+        out_radii: float = 1e-5,
     ):
         self.m = m
         self.curv = curv
