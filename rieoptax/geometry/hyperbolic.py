@@ -51,7 +51,7 @@ class PoincareBall(Hyperbolic):
         self,
         m: int,
         curv: float = -1.0,
-        in_radii: float = 1e-15,
+        in_radii: float = 1e-9,
         out_radii: float = 1e-8,
     ):
         self.m = m
@@ -70,9 +70,11 @@ class PoincareBall(Hyperbolic):
 
     def regularize(self, pt: Array) -> Array:
         def _regularize(pt):
-            pt = pt+ self.in_radii
             norm = jnp.linalg.norm(pt)
-            return (jnp.clip(norm, a_max=self.out_radii) /norm)* pt
+            in_pt = pt + max(norm, self.in_radii)-norm
+            out_pt =  pt/max(norm/(1-self.out_radii),1)
+            return out_pt
+
 
         reg_pt = straight_through_f(_regularize)(pt)
         return reg_pt
@@ -305,7 +307,7 @@ class PoincareBall(Hyperbolic):
         """
         bpt = self.regularize(bpt)
         pt = self.regularize(pt)
-        
+
         norm = jnp.linalg.norm(tv)
         add = self.mobius_add(-1 * bpt, pt)
         asc = self.abs_sqrt_curv
