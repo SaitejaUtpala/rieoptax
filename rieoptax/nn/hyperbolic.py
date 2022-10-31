@@ -86,14 +86,21 @@ class _Hypergyroplane(nn.Module):
     out_radii: float = 1e-5
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
-    normal_init: Callable = nn.initializers.lecun_normal()
+    tangent_vec_init: Callable = nn.initializers.lecun_normal()
     point_init: Callable = zeros
 
     @nn.compact
     def __call__(self, inputs: Array) -> float:
         input_shape = inputs.shape[-1]
-        normal = self.param("normal", self.normal_init, (input_shape,))
-        point = self.param("point@" + str(manifold), self.point_init, (input_shape,))
+        normal = self.param(
+            "tangent_vec", self.normal_init, (input_shape,), self.param_dtype
+        )
+        point = self.param(
+            "point@" + str(manifold), self.point_init, (input_shape,), self.param_dtype
+        )
+        inputs, tangent_vec, point = promote_dtype(
+            inputs, tangent_vec, point, dtype=self.dtype
+        )
         manifold = PoincareBall(input_shape, self.curv, self.in_radii, self.out_radii)
 
         sdist = vmap(manifold.sdist_to_gyroplanes, in_axes=(None, None, 0))
