@@ -72,7 +72,7 @@ class PoincareBall(Hyperbolic):
         def _regularize(pt):
             norm = jnp.linalg.norm(pt)
             in_pt = pt + max(norm, self.in_radii)-norm
-            out_pt =  pt/max(norm/(1-self.out_radii),1)
+            out_pt =  in_pt/max(norm/(1-self.out_radii),1)
             return out_pt
 
 
