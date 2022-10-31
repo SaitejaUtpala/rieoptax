@@ -94,7 +94,7 @@ class PoincareBall(Hyperbolic):
         xy = jnp.inner(x, y)
         x2 = jnp.linalg.norm(pt_a) ** 2
         y2 = jnp.linalg.norm(pt_b) ** 2
-        numerator = (1 - 2 * c * xy - self.curv * y2) * pt_a + (1 + c * x2) * y
+        numerator = (1 - 2 * c * xy - c * y2) * x + (1 + c * x2) * y
         denominator = 1 - 2 * c * xy + c**2 * y2 * x2
         ma = numerator / denominator
         return self.regularize(ma)
