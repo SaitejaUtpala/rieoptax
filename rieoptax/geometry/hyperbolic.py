@@ -70,9 +70,9 @@ class PoincareBall(Hyperbolic):
 
     def regularize(self, pt: Array) -> Array:
         def _regularize(pt):
+            pt = pt+ self.in_radii
             norm = jnp.linalg.norm(pt)
-            mul = max(self.out_radii / norm, 1.0)
-            pt = pt / self.norm(pt)
+            return (jnp.clip(norm, a_max=self.out_radii) /norm)* pt
 
         reg_pt = straight_through_f(_regularize)(pt)
         return reg_pt

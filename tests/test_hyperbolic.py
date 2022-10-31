@@ -29,8 +29,10 @@ class TestPoincareBall(absltest.TestCase):
         assert_trees_all_close(
             self.manifold.sdist_to_gyroplanes(self.bpt, self.tv, self.pt), exptd
         )
-
     def test_mobius_matvec(self):
         exptd = jnp.array([0.19429359, 0.45335174])
         M = jnp.array([[1.0, 2.0], [3.0, 4.0]])
         assert_trees_all_close(self.manifold.mobius_matvec(M, self.bpt), exptd)
+
+    def test_regularize(self):
+        
