@@ -86,29 +86,29 @@ class _Hypergyroplane(nn.Module):
     out_radii: float = 1e-5
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
-    tangent_vec_init: Callable = nn.initializers.lecun_normal()
-    point_init: Callable = zeros
+    tv_init: Callable = nn.initializers.lecun_normal()
+    pt_init: Callable = zeros
 
     @nn.compact
     def __call__(self, inputs: Array) -> float:
         input_shape = inputs.shape[-1]
-        normal = self.param(
-            "tangent_vec", self.normal_init, (input_shape,), self.param_dtype
-        )
-        point = self.param(
-            "point@" + str(manifold), self.point_init, (input_shape,), self.param_dtype
-        )
-        inputs, tangent_vec, point = promote_dtype(
-            inputs, tangent_vec, point, dtype=self.dtype
+        tv = self.param(
+            "tangent_vec", self.tv_init, (input_shape,1), self.param_dtype
+        )[0]
+        pt = self.param(
+            "point@" + str(manifold), self.pt_init, (input_shape,1), self.param_dtype
+        )[0]
+        inputs, tv, pt = promote_dtype(
+            inputs, tv, pt, dtype=self.dtype
         )
         manifold = PoincareBall(input_shape, self.curv, self.in_radii, self.out_radii)
 
         sdist = vmap(manifold.sdist_to_gyroplanes, in_axes=(None, None, 0))
         norm = manifold.norm
-        ptrans = manifold.ptrans
-        tv_point = ptrans(manifold.ref_point, point, normal)
-        sdist = sdist(point, tv_point, inputs)
-        logits = norm(tv_point) * sdist
+        ptranst = manifold.ptranst
+        tv_point = ptranst(manifold.ref_point, pt, tv)
+        sdist = sdist(pt, tv_point, inputs)
+        logits = norm(pt, tv_point) * sdist
         return logits
 
 
@@ -130,8 +130,8 @@ class PoincareMLR(nn.Module):
     out_radii: float = 1e-5
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
-    normal_init: Callable = nn.initializers.lecun_normal()
-    point_init: Callable = zeros
+    tv_init: Callable = nn.initializers.lecun_normal()
+    pt_init: Callable = zeros
 
     @nn.compact
     def __call__(self, inputs: Array) -> Array:
@@ -144,8 +144,8 @@ class PoincareMLR(nn.Module):
                     out_radii=self.out_radii,
                     dtype=self.dtype,
                     param_dtype=self.param_dtype,
-                    normal_init=self.normal_init,
-                    point_init=self.point_init,
+                    tv_init=self.tv_init,
+                    pt_init=self.pt_init,
                 )(x)
                 for _ in range(self.num_classes)
             ]
