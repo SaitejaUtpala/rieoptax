@@ -150,8 +150,6 @@ class PoincareRNNCell(nn.Module):
 
     Attributes:
         curv: curvature of the poincare manifold.
-        eps: eps to be added inputs, h while doing operations, done
-            to increase numerical stability of operations (default: 1E-15).
         gate_fn: activation function used for gates (default: sigmoid).
         activation_fn: activation function used for output and memory update
             (default: tanh).
@@ -186,8 +184,7 @@ class PoincareRNNCell(nn.Module):
         Returns:
         A tuple with the new carry and the output.
         """
-        h = carry + self.eps
-        inputs = inputs + self.eps
+        h = carry 
         hidden_features = h.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
@@ -263,8 +260,7 @@ class PoincareGRUCell(nn.Module):
         Returns:
             A tuple with the new carry and the output.
         """
-        h = carry + self.eps
-        inputs = inputs + self.eps
+        h = carry
         hidden_features = h.shape[-1]
         manifold = PoincareBall(hidden_features, self.curv)
         mobius_add = vmap(manifold.mobius_add, in_axes=(0, 0))
