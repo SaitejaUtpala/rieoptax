@@ -68,6 +68,54 @@ class PoincareDense(nn.Module):
             y = mobius_add(y, bias)
         return y
 
+class PoincareUniDirDense(nn.Module):
+    """A poincare dense layer applied over the last dimension of the input.
+
+    Attributes:
+        features: the number of output features.
+        curv: curvature of the poincare manifold.
+        use_bias: whether to add a bias to the output.
+        dtype: the dtype of the computation (default: infer from input and params).
+        param_dtype: the dtype passed to parameter initializers (default: float32).
+        kernel_init: initializer function for the weight matrix.
+        bias_init: initializer function for the bias.
+    """
+    features: int
+    curv: float = -1.0
+    in_radii: float = 1e-12
+    out_radii: float = 1e-5
+    use_bias: bool = True
+    dtype: Optional[Dtype] = None
+    param_dtype: Dtype = jnp.float32
+    kernel_init: Callable = default_kernel_init
+    bias_init: Callable = zeros
+
+    @nn.compact
+    def __call__(self, inputs: Array) -> Array:
+        manifold = PoincareBall(self.features, self.curv, self.in_radii, self.out_radii)
+        mobius_matvec = vmap(manifold.mobius_matvec, in_axes=(None, 0))
+        mobius_add = vmap(manifold.mobius_add, in_axes=(0, None))
+        # (TODO) : make it consistent with flax kernel shape order i.e., transpose.
+        kernel = self.param(
+            "kernel",
+            self.kernel_init,
+            (self.features, inputs.shape[-1]),
+            self.param_dtype,
+        )
+        if self.use_bias:
+            bias = self.param(
+                "bias@" + str(manifold),
+                self.bias_init,
+                (self.features,),
+                self.param_dtype,
+            )
+        else:
+            bias = None
+        inputs, kernel, bias = promote_dtype(inputs, kernel, bias, dtype=self.dtype)
+        y = mobius_matvec(kernel, inputs)
+        if self.use_bias:
+            y = mobius_add(y, bias)
+        return y
 
 class _Hypergyroplane(nn.Module):
     """Single hypergyroplane Layer and computes logits.
@@ -95,16 +143,16 @@ class _Hypergyroplane(nn.Module):
         manifold = PoincareBall(input_shape, self.curv, self.in_radii, self.out_radii)
         tv = self.param(
             "tangent_vec", self.tv_init, (input_shape, 1), self.param_dtype
-        )[0]
+        )[:,0]
         pt = self.param(
-            "point@" + str(manifold), self.pt_init, (input_shape, 1), self.param_dtype
-        )[0]
+            "point@" + str(manifold), self.pt_init, (input_shape, ), self.param_dtype
+        )
         inputs, tv, pt = promote_dtype(inputs, tv, pt, dtype=self.dtype)
 
         sdist = vmap(manifold.sdist_to_gyroplanes, in_axes=(None, None, 0))
         norm = manifold.norm
-        ptranst = manifold.ptranst
-        tv_point = ptranst(manifold.ref_point, pt, tv)
+        ptransp = manifold.ptransp
+        tv_point = ptransp(manifold.ref_point, pt, tv)
         sdist = sdist(pt, tv_point, inputs)
         logits = norm(pt, tv_point) * sdist
         return logits
@@ -342,3 +390,9 @@ class LiftedPoincareGRUCell(nn.Module):
     @staticmethod
     def initialize_carry(batch_dims: Tuple[int, ...], size: int) -> Array:
         return PoincareGRUCell.initialize_carry(random.PRNGKey(0), batch_dims, size)
+
+
+
+
+
+class LorentzDense(nn.Module):
