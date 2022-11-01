@@ -182,7 +182,7 @@ class PoincareMLR(nn.Module):
     @nn.compact
     def __call__(self, inputs: Array) -> Array:
         x = inputs
-        return jnp.hstack(
+        return jnp.vstack(
             [
                 _Hypergyroplane(
                     curv=self.curv,
@@ -194,8 +194,8 @@ class PoincareMLR(nn.Module):
                     pt_init=self.pt_init,
                 )(x)
                 for _ in range(self.num_classes)
-            ]
-        )
+            ],
+        ).T
 
 
 class PoincareRNNCell(nn.Module):
