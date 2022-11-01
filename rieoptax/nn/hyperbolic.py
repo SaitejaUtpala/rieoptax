@@ -396,3 +396,4 @@ class LiftedPoincareGRUCell(nn.Module):
 
 
 class LorentzDense(nn.Module):
+    pass 
