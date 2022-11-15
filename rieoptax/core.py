@@ -80,6 +80,7 @@ class EmptyState(NamedTuple):
 
 
 class RiemannianGradientTransformation(NamedTuple):
+    """Riemannian Gradient transformation."""
 
     init: TransformInitFn
     update: TransformUpdateFn
