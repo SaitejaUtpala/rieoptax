@@ -397,7 +397,7 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns distance between pt_a, pt_b.
         """
-        dist = jnp.arccosh(self.curv * self.lorentz_inner(pt_a, pt_b)) / (
+        dist = jnp.arccosh(self.curv * self.lorentz_inp(pt_a, pt_b)) / (
             jnp.sqrt(self.curv)
         )
         return dist
@@ -412,7 +412,7 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns Exp_{bpt}(tv).
         """
-        tv_ln = jnp.sqrt(self.lorentz_inner(tv, tv) * jnp.abs(self.curv))
+        tv_ln = jnp.sqrt(self.lorentz_inp(tv, tv) * jnp.abs(self.curv))
         exp = jnp.cosh(tv_ln) * bpt + (jnp.sinh(tv_ln) / tv_ln) * tv
         return exp
 
@@ -426,7 +426,7 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns Log_{bpt}(pt).
         """
-        k_xy = self.curv * self.lorentz_inner(bpt, pt)
+        k_xy = self.curv * self.lorentz_inp(bpt, pt)
         arccosh_k_xy = jnp.arccosh(k_xy)
         log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy)) * (pt - (k_xy * bpt))
         return log
