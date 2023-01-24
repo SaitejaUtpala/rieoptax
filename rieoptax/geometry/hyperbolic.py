@@ -354,11 +354,24 @@ class PoincareBall(Hyperbolic):
         """
         return jnp.log(jnp.linalg.norm(bpt- ip)**2/(1- jnp.linalg.norm(bpt)**2))
 
-    def geodesic_projection(self, ) -> Array : 
+    def geodesic_projection(self, pt, P) -> Array : 
+        """Geodesic Projection of 'pt' onto geodesic submanifold represented by 'P'. 
+
+        Args:
+            pt: point on the manifold.
+            P: Array.
+
+        Returns:
+            returns busemann coordinates of base point 'bpt' along 
+            idea point 'ip'. 
+        """
 
         def reflect(pt, P):
             ref = 2 * P.T @ P - jnp.eye(pt.shape[-1])
             return pt @ ref 
+
+        refl_pt  = reflect(pt, P)
+        return self.midpoint(pt, refl_pt)
          
 
 
