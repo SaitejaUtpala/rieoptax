@@ -324,6 +324,22 @@ class PoincareBall(Hyperbolic):
         return sdist
 
 
+    def busemann(self, bpt: Array, ip: Array) -> float:
+        """Buseman Projection of 'bpt' along geodesic from origin to ideal point 'ip' 
+
+        Args:
+            bpt: base point on the manifold.
+            ip: Idea point (belongs to hypersphere).
+
+        Returns:
+            returns busemann coordinates of base point 'bpt' along 
+            idea point 'ip'. 
+        """
+        return jnp.log(jnp.linalg.norm(bpt- ip)**2/(1- jnp.linalg.norm(bpt)**2))
+         
+
+
+
 class LorentzHyperboloid(Hyperbolic):
     def __init__(self, m, curv=-1):
         self.m = m
