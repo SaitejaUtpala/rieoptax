@@ -112,6 +112,18 @@ class PoincareBall(Hyperbolic):
         ms = self.mobius_add(pt_a, -1 * pt_b)
         return ms
 
+    def mobius_scalar_mul(self, pt_a: Array, scal: float) -> Array : 
+        """Mobius scalar multiplication. 
+        
+        Args:
+            pt_a: point on the manifold.
+            scal: scalar.
+
+        Returns:
+            mobius version of scal*pt_a.
+        """
+        pass 
+
     def gyra(self, pt_a: Array, pt_b: Array, vec: Array) -> Array:
         """Gyration operator.
 
@@ -324,8 +336,13 @@ class PoincareBall(Hyperbolic):
         return sdist
 
 
+    def midpoint(self, pt1, pt2):
+        x = self.mobius_add(-pt1, pt2)
+        y = self.mobius_mul(x, 0.5)
+        return mobius_add(x, y)
+
     def busemann(self, bpt: Array, ip: Array) -> float:
-        """Buseman Projection of 'bpt' along geodesic from origin to ideal point 'ip' 
+        """Buseman Projection of 'bpt' along geodesic from origin to ideal point 'ip'. 
 
         Args:
             bpt: base point on the manifold.
@@ -336,7 +353,14 @@ class PoincareBall(Hyperbolic):
             idea point 'ip'. 
         """
         return jnp.log(jnp.linalg.norm(bpt- ip)**2/(1- jnp.linalg.norm(bpt)**2))
+
+    def geodesic_projection(self, ) -> Array : 
+
+        def reflect(pt, P):
+            ref = 2 * P.T @ P - jnp.eye(pt.shape[-1])
+            return pt @ ref 
          
+
 
 
 
