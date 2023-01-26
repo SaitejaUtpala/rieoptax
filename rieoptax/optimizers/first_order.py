@@ -9,15 +9,10 @@ def rsgd(learning_rate: float) -> RiemannianGradientTransformation:
     """Riemannian stochastic gradient descent."""
     return scale_by_learning_rate(learning_rate)
 
+def radam(learning_rate: float) -> RiemannianGradientTransformation:
+    """Riemannian adaptive moment estimation (ADAM)."""
+    return 
 
-# def rasa(learning_rate: float, beta: float) -> RiemannianGradientTransformation:
-#     """Riemannian adaptive stochastic algorithm."""
-#     return chain(variance_reduction(), scale_by_learning_rate(learning_rate))
-
-
-# def rsvrg(learning_rate:float) -> RiemannianGradientTransformation:
-#     """Riemannain stochastic variance reduction gradient descent."""
-#     return chain(variance_reduction(), scale_by_learning_rate(learning_rate))
 
 
 def dp_rsgd(
