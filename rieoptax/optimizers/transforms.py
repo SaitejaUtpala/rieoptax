@@ -77,6 +77,15 @@ def bias_correction(moment, decay, count):
   return jax.tree_util.tree_map(
       lambda t: t / bias_correction_.astype(t.dtype), moment)
 
+class ScaleByRadamState(NamedTuple):
+  """State for the Riemannian Adam algorithm."""
+  manifolds: FrozenDict[str, Any]
+  count: chex.Array  # shape=(), dtype=jnp.int32.
+  mu: chex.ArrayTree
+  nu: chex.ArrayTree
+  params_prev: chex.ArrayTree
+  
+
 def scale_by_radam(
     b1: float = 0.9,
     b2: float = 0.99,
@@ -124,7 +133,7 @@ def scale_by_radam(
         nu = update_moment_per_elem_norm(updates, state.nu, b2, manifold_dict, params)
         nu = jnp.max(nu, state.nu) if ams_grad else nu
 
-        count_inc = numerics.safe_int32_increment(state.count)
+        count_inc = count_inc + jnp.array(1, dtype=jnp.int32)
         mu = bias_correction(mu, b1, count_inc)
         nu = bias_correction(nu, b2, count_inc)
         updates = jax.tree_util.tree_map(
