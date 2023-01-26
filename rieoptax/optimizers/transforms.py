@@ -37,21 +37,21 @@ def scale(step_size) :
   return RiemannianGradientTransformation(init_fn, update_fn)
 
 
-def update_moment(updates, moments, decay, order):
+def update_moment(updates, moments, decay):
     """Compute the exponential moving average of the `order`-th moment."""
     return jax.tree_util.tree_map(
-        lambda g, t: (1 - decay) * (g**order) + decay * t, updates, moments
+        lambda g, t: (1 - decay) * g + decay * t, updates, moments
     )
 
 
 def update_moment_per_metric_norm(
-    updates, moments, decay, order, manifold_dict, params
+    updates, moments, decay, manifold_dict, params
 ):
-    """Compute the exponential moving average of the Riemannain metric norm."""
+    """Compute the exponential moving average of squared Riemannain metric norm."""
 
     def squared_metric_norm(g, m, p):
         """Calculates Riemmanian metric norm of tangent vector 'g' at base point 'p'."""
-        return m.norm(p, g) ** 2
+        return m.norm(p, g)
 
     return jax.tree_util.tree_map(
         lambda g, t, m, x: (1 - decay) * squared_metric_norm(g, m, p) + decay * t,
@@ -88,9 +88,9 @@ def scale_by_radam(
         return ScaleByRadamState(count=jnp.zeros([], jnp.int32), mu=mu, nu=nu)
 
     def update_fn(updates, state, params, manifold_dict):
-        mu = update_moment(updates, state.mu, b1, 1)
+        mu = update_moment(updates, state.mu, b1)
         nu = update_moment_per_elem_norm(
-            updates, state.nu, b2, 2, manifold_dict, params
+            updates, state.nu, b2, manifold_dict, params
         )
         count_inc = numerics.safe_int32_increment(state.count)
         mu_hat = bias_correction(mu, b1, count_inc)
