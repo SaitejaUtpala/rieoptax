@@ -84,7 +84,7 @@ class ScaleByRadamState(NamedTuple):
   mu: chex.ArrayTree
   nu: chex.ArrayTree
   params_prev: chex.ArrayTree
-  
+
 
 def scale_by_radam(
     b1: float = 0.9,
@@ -139,16 +139,8 @@ def scale_by_radam(
         updates = jax.tree_util.tree_map(
             lambda m, v: m / (jnp.sqrt(v + eps_root) + eps), mu, nu
         )
-        return updates, ScaleByAdamState(count=count_inc, mu=mu, nu=nu, params_prev=params)
-
-
-
-
+        return updates, ScaleByRadamState(count=count_inc, mu=mu, nu=nu, params_prev=params)
 
 def scale_by_learning_rate(learning_rate, flip_sign=True):
     m = -1 if flip_sign else 1
     return scale(m * learning_rate)
-
-
-
-  
