@@ -2,7 +2,7 @@ import functools
 from typing import Any, Callable, NamedTuple, Optional
 
 import jax
-from rieoptax.core import EmptyState, ManifoldArray, RiemannianGradientTransformation
+from rieoptax.base import RiemannianEmptyState, ManifoldArray, RiemannianGradientTransformation
 
 ScaleState = EmptyState()
 
@@ -16,13 +16,11 @@ class TraceState(NamedTuple):
 
 
 
-class EmptyState(NamedTuple):
-  """An empty state for the simplest stateless transformations."""
+# class EmptyState(NamedTuple):
+#   """An empty state for the simplest stateless transformations."""
 
 
-class RiemannianEmptyState(NamedTuple):
-  """An empty state for all Riemannian gradient transformations."""
-  manifold_dict: FrozenDict[str, Any]
+
 
   
 
@@ -63,7 +61,7 @@ def update_moment_per_metric_norm(
         return m.norm(p, g)
 
     return jax.tree_util.tree_map(
-        lambda g, t, m, x: (1 - decay) * squared_metric_norm(g, m, p) + decay * t,
+        lambda g, t, m, p: (1 - decay) * squared_metric_norm(g, m, p) + decay * t,
         updates,
         moments,
         manifold_dict,
@@ -102,29 +100,37 @@ def scale_by_radam(
       A `RiemannianGradientTransformation` object.
     """
 
-    def init_fn(params, ):
+    def init_fn(
+        params,
+    ):
         mu = jax.tree_util.tree_map(  # First moment
             lambda t: jnp.zeros_like(t, dtype=mu_dtype), params
         )
         nu = jax.tree_util.tree_map(jnp.zeros_like, params)  # Second moment
         return ScaleByRadamState(count=jnp.zeros([], jnp.int32), mu=mu, nu=nu)
 
-    def update_fn(updates, state, params):
-        mu = update_moment(updates, state.mu, b1)
-        nu = update_moment_per_elem_norm(updates, state.nu, b2, manifold_dict, params)
-        count_inc = numerics.safe_int32_increment(state.count)
-        mu_hat = bias_correction(mu, b1, count_inc)
-        nu_hat = bias_correction(nu, b2, count_inc)
-        if ams_grad:
+    def update_fn(updates, state, params, manifolds):
+        # key difference between Riemannian and Eucliean is that 
+        # first moment has to transportation to current_params.
 
-
-        else:
-
-        updates = jax.tree_util.tree_map(
-            lambda m, v: m / (jnp.sqrt(v + eps_root) + eps), mu_hat, nu_hat
+        tau = jax.tree_util.tree_map(
+            lambda mo, m, p_prev, p_curr: mo.ptrans(p_prev, p_curr, m),
+            manifolds,
+            state.mu,
+            state.params_prev,
+            params,
         )
-        mu = utils.cast_tree(mu, mu_dtype)
-        return updates, ScaleByAdamState(count=count_inc, mu=mu, nu=nu)
+        mu = update_moment(updates, tau, b1)
+        nu = update_moment_per_elem_norm(updates, state.nu, b2, manifold_dict, params)
+        nu = jnp.max(nu, state.nu) if ams_grad else nu
+
+        count_inc = numerics.safe_int32_increment(state.count)
+        mu = bias_correction(mu, b1, count_inc)
+        nu = bias_correction(nu, b2, count_inc)
+        updates = jax.tree_util.tree_map(
+            lambda m, v: m / (jnp.sqrt(v + eps_root) + eps), mu, nu
+        )
+        return updates, ScaleByAdamState(count=count_inc, mu=mu, nu=nu, params_prev=params)
 
 
 

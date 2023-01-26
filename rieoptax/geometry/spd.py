@@ -242,6 +242,11 @@ class SPDAffineInvariant(SPDManifold):
         self.m = m
         super().__init__()
 
+    def retr(self, bpt: Array, tv: Array) -> Array:
+        raise NotImplementedError(
+            "Retraction is not implemented. Use Exponential Map instead"
+        )
+
     def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
 
@@ -318,7 +323,6 @@ class SPDAffineInvariant(SPDManifold):
         return dist
 
     def egrad_to_rgrad(self, egrad: Array, bpt: Array) -> Array:
-
         return bpt @ egrad @ bpt.T
 
 
