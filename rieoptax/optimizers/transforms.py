@@ -2,45 +2,26 @@ import functools
 from typing import Any, Callable, NamedTuple, Optional
 
 import jax
-from rieoptax.base import RiemannianEmptyState, ManifoldArray, RiemannianGradientTransformation
-
-ScaleState = EmptyState()
-
-
-
-
-class TraceState(NamedTuple):
-  """Holds an aggregation of past updates."""
-  trace: ManifoldArray 
+from rieoptax.base import (
+    RiemannianEmptyState,
+    ManifoldArray,
+    RiemannianGradientTransformation,
+)
 
 
+def scale(step_size):
+    """Scale updates by some fixed scalar `step_size`."""
 
+    def init_fn(params, manifold_dict=None):
+        del params
+        return ScaleState()
 
-# class EmptyState(NamedTuple):
-#   """An empty state for the simplest stateless transformations."""
+    def update_fn(updates, state, params=None):
+        del params
+        updates = step_size * updates.value
+        return updates, state
 
-
-
-
-  
-
-ScaleState = RiemannianEmptyState
-
-def scale(step_size) :
-  """Scale updates by some fixed scalar `step_size`."""
-
-  def init_fn(params, manifold_dict=None):
-    del params 
-    manifold_dict = manifold_dict if manifold_dict else  
-    return ScaleState()
-
-  def update_fn(updates, state, params=None):
-    del params
-    del manifold_dict
-    updates = step_size*updates.value
-    return updates, state
-
-  return RiemannianGradientTransformation(init_fn, update_fn)
+    return RiemannianGradientTransformation(init_fn, update_fn)
 
 
 def update_moment(updates, moments, decay):
@@ -50,11 +31,9 @@ def update_moment(updates, moments, decay):
     )
 
 
-def update_moment_per_metric_norm(
-    updates, moments, decay, manifold_dict, params
-):
-    """Compute the exponential moving average of second moment of 
-       squared Riemannain metric norm."""
+def update_moment_per_metric_norm(updates, moments, decay, manifold_dict, params):
+    """Compute the exponential moving average of second moment of
+    squared Riemannain metric norm."""
 
     def squared_metric_norm(g, m, p):
         """Calculates Riemmanian metric norm of tangent vector 'g' at base point 'p'."""
@@ -68,22 +47,26 @@ def update_moment_per_metric_norm(
         params,
     )
 
+
 @functools.partial(jax.jit, inline=True)
 def bias_correction(moment, decay, count):
-  """Performs bias correction. It becomes a no-op as count goes to infinity."""
-  bias_correction_ = 1 - decay**count
+    """Performs bias correction. It becomes a no-op as count goes to infinity."""
+    bias_correction_ = 1 - decay**count
 
-  # Perform division in the original precision.
-  return jax.tree_util.tree_map(
-      lambda t: t / bias_correction_.astype(t.dtype), moment)
+    # Perform division in the original precision.
+    return jax.tree_util.tree_map(
+        lambda t: t / bias_correction_.astype(t.dtype), moment
+    )
+
 
 class ScaleByRadamState(NamedTuple):
-  """State for the Riemannian Adam algorithm."""
-  manifolds: FrozenDict[str, Any]
-  count: chex.Array  # shape=(), dtype=jnp.int32.
-  mu: chex.ArrayTree
-  nu: chex.ArrayTree
-  params_prev: chex.ArrayTree
+    """State for the Riemannian Adam algorithm."""
+
+    manifolds: FrozenDict[str, Any]
+    count: chex.Array  # shape=(), dtype=jnp.int32.
+    mu: chex.ArrayTree
+    nu: chex.ArrayTree
+    params_prev: chex.ArrayTree
 
 
 def scale_by_radam(
@@ -119,7 +102,7 @@ def scale_by_radam(
         return ScaleByRadamState(count=jnp.zeros([], jnp.int32), mu=mu, nu=nu)
 
     def update_fn(updates, state, params, manifolds):
-        # key difference between Riemannian and Eucliean is that 
+        # key difference between Riemannian and Eucliean is that
         # first moment has to transportation to current_params.
 
         tau = jax.tree_util.tree_map(
@@ -139,7 +122,10 @@ def scale_by_radam(
         updates = jax.tree_util.tree_map(
             lambda m, v: m / (jnp.sqrt(v + eps_root) + eps), mu, nu
         )
-        return updates, ScaleByRadamState(count=count_inc, mu=mu, nu=nu, params_prev=params)
+        return updates, ScaleByRadamState(
+            count=count_inc, mu=mu, nu=nu, params_prev=params
+        )
+
 
 def scale_by_learning_rate(learning_rate, flip_sign=True):
     m = -1 if flip_sign else 1
