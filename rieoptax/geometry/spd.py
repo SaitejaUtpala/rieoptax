@@ -319,7 +319,7 @@ class SPDAffineInvariant(SPDManifold):
 
     def egrad_to_rgrad(self, egrad: Array, bpt: Array) -> Array:
 
-        return bpt @ egrad @ bpt.T
+        return bpt.value @ egrad.value @ bpt.value.T
 
 
 class SPDLogEuclidean(SPDManifold):
