@@ -6,7 +6,7 @@ from rieoptax.optimizers.transforms import scale_by_learning_rate, scale_by_adam
 
 
 def rsgd(learning_rate: float) -> RiemannianGradientTransformation:
-    """Riemannian stochastic gradient descent."""
+    """Riemannian (stochastic) gradient descent."""
     return scale_by_learning_rate(learning_rate)
 
 def radam(
