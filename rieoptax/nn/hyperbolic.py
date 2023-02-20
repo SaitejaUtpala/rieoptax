@@ -123,7 +123,10 @@ class _Hypergyroplane(nn.Module):
     Attributes:
         curv: curvature of the poincare manifold.
         use_bias: whether to add a bias to the output.
-        dtype: the dtype of the computation (default: infer from input and params).
+        dtype: the dtype of the computation (default: in    if not jnp.issubdtype(inputs.dtype, jnp.integer):
+        raise ValueError('Input type must be an integer or unsigned integer.')
+        embedding, = promote_dtype(self.embedding, dtype=self.dtype, inexact=False)
+        return jnp.take(embedding, inputs, axis=0)fer from input and params).
         param_dtype: the dtype passed to parameter initializers (default: float32).
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
