@@ -1,9 +1,7 @@
-from rieoptax.geometry.base import RiemannianManifold
-
 from jax import numpy as jnp
 
 
-class HypersphereCanonicalMetric(RiemannianManifold):
+class HypersphereCanonicalMetric():
     def __init__(self, m):
         self.m = m
 
