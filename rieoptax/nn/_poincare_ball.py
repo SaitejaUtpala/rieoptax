@@ -43,7 +43,7 @@ def poincare_uniform(scale: float = 1e-2,
            dtype: DTypeLikeFloat = dtype) -> Array:
     
     dtype = dtypes.canonicalize_dtype(dtype)
-    return PoincareBall(dim).uniform(key, scale, dtype) #random.uniform(key, shape, dtype) * scale
+    return PoincareBall(dim).uniform(key, scale, dtype) 
   return init
     
 class PoincareDense(nn.Module):
@@ -437,7 +437,7 @@ class PoincareEmbed(nn.Module):
     features: int
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
-    embedding_init: Callable[[PRNGKey, Shape, Dtype], Array] = default_embed_init
+    embedding_init: Callable[[PRNGKey, Shape, Dtype], Array] = poincare_uniform
     embedding: Array = field(init=False)
 
     def setup(self):
