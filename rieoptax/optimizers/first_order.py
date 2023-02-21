@@ -15,7 +15,7 @@ def radam(
     b2: float = 0.999,
     eps: float = 1e-8,
     eps_root: float = 0.0,
-    amgs_grad: bool = False,
+    ams_grad: bool = False,
 ) -> RiemannianGradientTransformation:
     """Riemannian adaptive moment estimation (ADAM)."""
     return chain(
