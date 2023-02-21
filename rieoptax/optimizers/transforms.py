@@ -4,7 +4,6 @@ from typing import Any, Callable, NamedTuple, Optional
 import jax
 from rieoptax.base import (
     RiemannianEmptyState,
-    ManifoldArray,
     RiemannianGradientTransformation,
 )
 

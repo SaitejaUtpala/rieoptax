@@ -10,7 +10,7 @@ from flax.linen.initializers import orthogonal
 from flax.linen.linear import default_kernel_init
 from jax import numpy as jnp
 from jax import random, vmap
-from chex import Array 
+from chex import Array
 from jax import lax
 from jax.nn.initializers import Initializer as Initializer
 from jax._src import dtypes
@@ -22,30 +22,32 @@ KeyArray = random.KeyArray
 Shape = Tuple[int, ...]
 Dtype = Any
 DTypeLikeFloat = Any
-PrecisionLike = Union[None, str, lax.Precision, Tuple[str, str],
-                      Tuple[lax.Precision, lax.Precision]]
-
+PrecisionLike = Union[
+    None, str, lax.Precision, Tuple[str, str], Tuple[lax.Precision, lax.Precision]
+]
 
 
 def poincare_uniform() -> Initializer:
-  """Builds an initializer that returns real (approx)uniformly-distributed random arrays
-     but are constrained to poincare ball.
-  Args:
-    scale: optional; the upper bound of the random distribution.
-    dtype: optional; the initializer's default dtype.
-  Returns:
-    An initializer that returns arrays whose values are uniformly distributed in
-    the range ``[0, scale)``.
-  """
-  def init(key: KeyArray,
-           shape: Tuple,
-           dtype: DTypeLikeFloat = jnp.float_) -> Array:
-    
-    dtype = dtypes.canonicalize_dtype(dtype)
-    eps = 1e-5
-    return random.uniform(key, shape, minval=-1.0+eps, maxval=1.0-eps)/shape[-1] 
-   
-  return init    
+    """Builds an initializer that returns real (approx)uniformly-distributed random arrays
+       but are constrained to poincare ball.
+    Args:
+      scale: optional; the upper bound of the random distribution.
+      dtype: optional; the initializer's default dtype.
+    Returns:
+      An initializer that returns arrays whose values are uniformly distributed in
+      the range ``[0, scale)``.
+    """
+
+    def init(key: KeyArray, shape: Tuple, dtype: DTypeLikeFloat = jnp.float_) -> Array:
+        dtype = dtypes.canonicalize_dtype(dtype)
+        eps = 1e-5
+        return (
+            random.uniform(key, shape, minval=-1.0 + eps, maxval=1.0 - eps) / shape[-1]
+        )
+
+    return init
+
+
 class PoincareDense(nn.Module):
     """A poincare dense layer applied over the last dimension of the input.
 
@@ -96,6 +98,7 @@ class PoincareDense(nn.Module):
             y = mobius_add(y, bias)
         return y
 
+
 class PoincareUniDirDense(nn.Module):
     """A poincare dense layer applied over the last dimension of the input.
 
@@ -108,6 +111,7 @@ class PoincareUniDirDense(nn.Module):
         kernel_init: initializer function for the weight matrix.
         bias_init: initializer function for the bias.
     """
+
     features: int
     curv: float = -1.0
     in_radii: float = 1e-12
@@ -145,6 +149,7 @@ class PoincareUniDirDense(nn.Module):
             y = mobius_add(y, bias)
         return y
 
+
 class _Hypergyroplane(nn.Module):
     """Single hypergyroplane Layer and computes logits.
 
@@ -174,9 +179,9 @@ class _Hypergyroplane(nn.Module):
         manifold = PoincareBall(input_shape, self.curv, self.in_radii, self.out_radii)
         tv = self.param(
             "tangent_vec", self.tv_init, (input_shape, 1), self.param_dtype
-        )[:,0]
+        )[:, 0]
         pt = self.param(
-            "point@" + str(manifold), self.pt_init, (input_shape, ), self.param_dtype
+            "point@" + str(manifold), self.pt_init, (input_shape,), self.param_dtype
         )
         inputs, tv, pt = promote_dtype(inputs, tv, pt, dtype=self.dtype)
 
@@ -421,7 +426,7 @@ class LiftedPoincareGRUCell(nn.Module):
     @staticmethod
     def initialize_carry(batch_dims: Tuple[int, ...], size: int) -> Array:
         return PoincareGRUCell.initialize_carry(random.PRNGKey(0), batch_dims, size)
-    
+
 
 class PoincareEmbed(nn.Module):
     """Embedding Module.
@@ -433,6 +438,7 @@ class PoincareEmbed(nn.Module):
         param_dtype: the dtype passed to parameter initializers (default: float32).
         embedding_init: embedding initializer.
     """
+
     num_embeddings: int
     features: int
     dtype: Optional[Dtype] = None
@@ -441,12 +447,14 @@ class PoincareEmbed(nn.Module):
     embedding: Array = field(init=False)
 
     def setup(self):
-        self.embedding = self.param('embedding@poincare_product',
-                                    self.embedding_init,
-                                    (self.num_embeddings, self.features),
-                                    self.param_dtype)
+        self.embedding = self.param(
+            "embedding@poincare_product",
+            self.embedding_init,
+            (self.num_embeddings, self.features),
+            self.param_dtype,
+        )
 
-    def __call__(self, inputs: Array) -> Array: 
+    def __call__(self, inputs: Array) -> Array:
         """Embeds the inputs along the last dimension.
         Args:
             inputs: input data, all dimensions are considered batch dimensions.
@@ -456,6 +464,6 @@ class PoincareEmbed(nn.Module):
         """
 
         if not jnp.issubdtype(inputs.dtype, jnp.integer):
-            raise ValueError('Input type must be an integer or unsigned integer.')
-        embedding, = promote_dtype(self.embedding, dtype=self.dtype, inexact=False)
+            raise ValueError("Input type must be an integer or unsigned integer.")
+        (embedding,) = promote_dtype(self.embedding, dtype=self.dtype, inexact=False)
         return jnp.take(embedding, inputs, axis=0)
