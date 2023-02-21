@@ -27,8 +27,7 @@ PrecisionLike = Union[None, str, lax.Precision, Tuple[str, str],
 
 
 
-def poincare_uniform(scale: float = 1e-2,
-            dtype: DTypeLikeFloat = jnp.float_) -> Initializer:
+def poincare_uniform() -> Initializer:
   """Builds an initializer that returns real (approx)uniformly-distributed random arrays
      but are constrained to poincare ball.
   Args:
@@ -39,13 +38,14 @@ def poincare_uniform(scale: float = 1e-2,
     the range ``[0, scale)``.
   """
   def init(key: KeyArray,
-           dim: int,
-           dtype: DTypeLikeFloat = dtype) -> Array:
+           shape: Tuple,
+           dtype: DTypeLikeFloat = jnp.float_) -> Array:
     
     dtype = dtypes.canonicalize_dtype(dtype)
-    return PoincareBall(dim).uniform(key, scale, dtype) 
-  return init
-    
+    eps = 1e-5
+    return random.uniform(key, shape, minval=-1.0+eps, maxval=1.0-eps)/shape[-1] 
+   
+  return init    
 class PoincareDense(nn.Module):
     """A poincare dense layer applied over the last dimension of the input.
 
@@ -437,7 +437,7 @@ class PoincareEmbed(nn.Module):
     features: int
     dtype: Optional[Dtype] = None
     param_dtype: Dtype = jnp.float32
-    embedding_init: Callable[[PRNGKey, Shape, Dtype], Array] = poincare_uniform
+    embedding_init: Callable[[PRNGKey, Shape, Dtype], Array] = poincare_uniform()
     embedding: Array = field(init=False)
 
     def setup(self):
