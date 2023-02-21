@@ -17,9 +17,7 @@ from flax.traverse_util import (
 )
 
 from typing_extensions import Protocol
-from rieoptax.geometry.euclidean import Euclidean
 
-OptState = Any
 
 
 @register_pytree_node_class
