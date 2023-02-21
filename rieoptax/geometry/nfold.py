@@ -64,8 +64,8 @@ class NFoldManifold():
         Returns:
             returns Log_{bpt}(pt).
         """
-        log = vmap(self.manifold.egrad_to_rgrad, in_axes=(0,0))(bpt, egrad)
-        return log
+        rgrad = vmap(self.manifold.egrad_to_rgrad, in_axes=(0,0))(bpt, egrad)
+        return rgrad
 
     @partial(jit, static_argnums=(0,))
     def dist(self, pt_a: Array, pt_b: Array) -> float:
@@ -93,5 +93,5 @@ class NFoldManifold():
         Returns:
             returns PT_{s_pt ->e_pt}(tv).
         """
-        dist = vmap(self.manifold.dist, in_axes=(0,0,0))(s_pt, e_pt, tv)
-        return dist.sum()
+        ptrans = vmap(self.manifold.ptrans, in_axes=(0,0,0))(s_pt, e_pt, tv)
+        return ptrans 
