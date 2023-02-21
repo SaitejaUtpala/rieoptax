@@ -1,7 +1,7 @@
 from base import RiemannianManifold
 
 
-class StiefelManifold(RiemannianManifold):
+class StiefelManifold():
     def __init__(self, m, r):
         if m < r or r < 1:
             raise ValueError(

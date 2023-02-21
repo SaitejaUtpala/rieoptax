@@ -7,10 +7,9 @@ from jax import grad, jit
 from jax import numpy as jnp
 from jax import vmap
 
-from rieoptax.geometry.base import RiemannianManifold
 
 
-class SPDManifold(RiemannianManifold):
+class SPDManifold():
     def symmetrize(self, mat: Array) -> Array:
         """Symmetrization of matrix.
 

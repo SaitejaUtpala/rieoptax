@@ -1,10 +1,13 @@
-from abc import ABC, abstractmethod
-from functools import partial
+from abc import ABC
 
-from jax import jit
+from jax import grad, lax, jit
+from typing import Callable 
+from chex import Array
 
 
-class RiemannianManifold(ABC):
-    def __init__(self):
-        self.exp = jit(self.exp)
-        self.log = jit(self.log)
+def straight_through_f(f: Callable) -> Callable:
+    def _f(x: Array) -> Array:
+        zero = x - lax.stop_gradient(x)
+        return zero + lax.stop_gradient(f(x))
+
+    return _f

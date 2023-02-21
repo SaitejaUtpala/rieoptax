@@ -3,10 +3,8 @@ from typing import Tuple
 from chex import Array
 from jax import numpy as jnp
 
-from rieoptax.geometry.base import RiemannianManifold
 
-
-class CouplingManifold(RiemannianManifold):
+class CouplingManifold():
     def __init__(self, p, q):
         self.p = p
         self.q = q

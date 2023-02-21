@@ -1,9 +1,7 @@
 from chex import Array
 
-from rieoptax.geometry.base import RiemannianManifold
 
-
-class Euclidean(RiemannianManifold):
+class Euclidean():
 
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
         """Inner product between two tangent vectors at a point on manifold.

@@ -8,15 +8,14 @@ from jax import jit
 from jax import numpy as jnp
 from jax import vmap
 
-from rieoptax.core import straight_through_f
-from rieoptax.geometry.base import RiemannianManifold
+from rieoptax.geometry.base import straight_through_f
 
 PRNGKey = Any
 Shape = Tuple[int, ...]
 Dtype = Any
 
 
-class Hyperbolic(RiemannianManifold):
+class Hyperbolic():
     def poincare_to_lorentz(self, pt: Array, curv: float) -> Array:
         """Poincare to Loretnz Isometric convertor.
 
