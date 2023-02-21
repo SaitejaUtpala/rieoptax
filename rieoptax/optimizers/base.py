@@ -1,6 +1,6 @@
 import importlib
-from chex import Array
-from typing import Callable, NamedTuple, Any, Dict, List
+from chex import Array, ArrayTree
+from typing import Callable, NamedTuple, Any, Dict, List, Tuple, Sequence, Optional
 from typing_extensions import Protocol
 from jax import tree_util
 
@@ -13,6 +13,14 @@ from flax.traverse_util import (
     unflatten_dict,
 )
 from rieoptax.geometry.euclidean import Euclidean
+
+
+PyTree = Any
+Shape = Sequence[int]
+
+OptState = ArrayTree
+Params = ArrayTree
+Updates = Params
 
 
 def construct_manifold_obj(param_name: str):
@@ -65,12 +73,14 @@ def rgrad_from_egrad(
 
 
 class TransformInitFn(Protocol):
-    def __call__(self, params):
+    def __call__(self, params: Params) -> OptState: #type: ignore
         "The `init` function"
 
 
 class TransformUpdateFn(Protocol):
-    def __call__(self, updates, state, params):
+    def __call__(
+        self, updates: Updates, state: Updates, params: Optional[Params] = None
+    ) -> Tuple[Updates, OptState]:                   #type: ignore
         """The `update` function."""
 
 

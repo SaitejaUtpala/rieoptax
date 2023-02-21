@@ -1,9 +1,12 @@
 from flax.struct import PyTreeNode, field
 from flax.core import FrozenDict
-from rieoptax.optimizers.base import RiemannianGradientTransformation, get_manifold_dict
+from rieoptax.optimizers.base import (
+    RiemannianGradientTransformation,
+    get_manifold_dict,
+    rgrad_from_egrad,
+)
 from rieoptax.optimizers.update import apply_updates
 from typing import Optional, Any, Callable
-from jax import tree_util
 
 OptState = Any
 
@@ -19,7 +22,7 @@ class RtxTrainState(PyTreeNode):
 
     def apply_gradients(self, *, egrads, **kwargs):
         rgrads = rgrad_from_egrad(self.params, egrads, self.manifold_dict)
-        updates, new_opt_state = self.rtx.update(rgrads, self.opt_state, self.params)
+        updates, new_opt_state = self.rtx.update(rgrads, self.opt_state, self.params) 
         new_params = apply_updates(
             self.params, updates, self.manifold_dict, self.update_fn
         )
