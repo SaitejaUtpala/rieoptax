@@ -12,16 +12,39 @@ from jax import numpy as jnp
 from jax import random, vmap
 from chex import Array 
 from jax import lax
+from jax.nn.initializers import Initializer as Initializer
+from jax._src import dtypes
 
 from rieoptax.geometry.hyperbolic import PoincareBall
 
 PRNGKey = Any
+KeyArray = random.KeyArray
 Shape = Tuple[int, ...]
 Dtype = Any
+DTypeLikeFloat = Any
 PrecisionLike = Union[None, str, lax.Precision, Tuple[str, str],
                       Tuple[lax.Precision, lax.Precision]]
 
 
+
+def poincare_uniform(scale: float = 1e-2,
+            dtype: DTypeLikeFloat = jnp.float_) -> Initializer:
+  """Builds an initializer that returns real (approx)uniformly-distributed random arrays
+     but are constrained to poincare ball.
+  Args:
+    scale: optional; the upper bound of the random distribution.
+    dtype: optional; the initializer's default dtype.
+  Returns:
+    An initializer that returns arrays whose values are uniformly distributed in
+    the range ``[0, scale)``.
+  """
+  def init(key: KeyArray,
+           dim: int,
+           dtype: DTypeLikeFloat = dtype) -> Array:
+    
+    dtype = dtypes.canonicalize_dtype(dtype)
+    return PoincareBall(dim).uniform(key, scale, dtype) #random.uniform(key, shape, dtype) * scale
+  return init
     
 class PoincareDense(nn.Module):
     """A poincare dense layer applied over the last dimension of the input.
