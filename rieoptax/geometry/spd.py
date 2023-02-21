@@ -466,7 +466,7 @@ class SPDBuresWasserstein(SPDManifold):
         return jnp.trace(pt_a) + jnp.trace(pt_b) - 2 * jnp.trace(prod)
 
     def egrad_to_rgrad(self, bpt: Array, egrad: Array) -> float:
-        return 4 * self.symmetrize(egrad @ bpt)
+        return 4 * self.symmetrize(egrad.value @ bpt.value)
 
 
 class SPDGeneralizedBuresWasserstein(SPDManifold):
