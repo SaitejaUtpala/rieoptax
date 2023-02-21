@@ -154,3 +154,9 @@ cython_debug/
 
 # stash
 .stash/
+
+# data
+data/ 
+
+# temp
+.temp/

@@ -112,6 +112,18 @@ class PoincareBall(Hyperbolic):
         ms = self.mobius_add(pt_a, -1 * pt_b)
         return ms
 
+    def mobius_scalar_mul(self, pt_a: Array, scal: float) -> Array : 
+        """Mobius scalar multiplication. 
+        
+        Args:
+            pt_a: point on the manifold.
+            scal: scalar.
+
+        Returns:
+            mobius version of scal*pt_a.
+        """
+        pass 
+
     def gyra(self, pt_a: Array, pt_b: Array, vec: Array) -> Array:
         """Gyration operator.
 
@@ -324,8 +336,13 @@ class PoincareBall(Hyperbolic):
         return sdist
 
 
+    def midpoint(self, pt1, pt2):
+        x = self.mobius_add(-pt1, pt2)
+        y = self.mobius_mul(x, 0.5)
+        return mobius_add(x, y)
+
     def busemann(self, bpt: Array, ip: Array) -> float:
-        """Buseman Projection of 'bpt' along geodesic from origin to ideal point 'ip' 
+        """Buseman Projection of 'bpt' along geodesic from origin to ideal point 'ip'. 
 
         Args:
             bpt: base point on the manifold.
@@ -336,7 +353,27 @@ class PoincareBall(Hyperbolic):
             idea point 'ip'. 
         """
         return jnp.log(jnp.linalg.norm(bpt- ip)**2/(1- jnp.linalg.norm(bpt)**2))
+
+    def geodesic_projection(self, pt, P) -> Array : 
+        """Geodesic Projection of 'pt' onto geodesic submanifold represented by 'P'. 
+
+        Args:
+            pt: point on the manifold.
+            P: Array.
+
+        Returns:
+            returns busemann coordinates of base point 'bpt' along 
+            idea point 'ip'. 
+        """
+
+        def reflect(pt, P):
+            ref = 2 * P.T @ P - jnp.eye(pt.shape[-1])
+            return pt @ ref 
+
+        refl_pt  = reflect(pt, P)
+        return self.midpoint(pt, refl_pt)
          
+
 
 
 
@@ -373,7 +410,7 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns distance between pt_a, pt_b.
         """
-        dist = jnp.arccosh(self.curv * self.lorentz_inner(pt_a, pt_b)) / (
+        dist = jnp.arccosh(self.curv * self.lorentz_inp(pt_a, pt_b)) / (
             jnp.sqrt(self.curv)
         )
         return dist
@@ -388,7 +425,7 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns Exp_{bpt}(tv).
         """
-        tv_ln = jnp.sqrt(self.lorentz_inner(tv, tv) * jnp.abs(self.curv))
+        tv_ln = jnp.sqrt(self.lorentz_inp(tv, tv) * jnp.abs(self.curv))
         exp = jnp.cosh(tv_ln) * bpt + (jnp.sinh(tv_ln) / tv_ln) * tv
         return exp
 
@@ -402,7 +439,7 @@ class LorentzHyperboloid(Hyperbolic):
         Returns:
             returns Log_{bpt}(pt).
         """
-        k_xy = self.curv * self.lorentz_inner(bpt, pt)
+        k_xy = self.curv * self.lorentz_inp(bpt, pt)
         arccosh_k_xy = jnp.arccosh(k_xy)
         log = (arccosh_k_xy / jnp.sinh(arccosh_k_xy)) * (pt - (k_xy * bpt))
         return log

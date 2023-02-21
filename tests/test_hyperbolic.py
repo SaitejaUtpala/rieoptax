@@ -16,6 +16,15 @@ class TestPoincareBall(absltest.TestCase):
         exptd = jnp.array([0.2079726, 0.2079726])
         assert_trees_all_close(self.manifold.mobius_add(self.bpt, self.pt), exptd)
 
+    def test_mobius_scalar_mul(self):
+        pass 
+
+    def test_busemann_projection(self):
+        pass 
+
+    def test_geodesic_projection(self):
+        pass 
+    
     def test_dist(self):
         exptd = jnp.array(0.20479442)
         assert_trees_all_close(self.manifold.dist(self.bpt, self.pt), exptd)
