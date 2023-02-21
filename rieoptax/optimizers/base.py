@@ -2,10 +2,16 @@ import importlib
 from chex import Array
 from typing import Callable, NamedTuple, Any, Dict, List
 from typing_extensions import Protocol
+from jax import tree_util
 
 from flax.core import FrozenDict
-from flax.traverse_util import (_get_params_dict, _sorted_items, empty_node,
-                                flatten_dict, unflatten_dict)
+from flax.traverse_util import (
+    _get_params_dict,
+    _sorted_items,
+    empty_node,
+    flatten_dict,
+    unflatten_dict,
+)
 from rieoptax.geometry.euclidean import Euclidean
 
 
@@ -21,7 +27,6 @@ def construct_manifold_obj(param_name: str):
 
 
 def obj_from_str(module_name: str, class_name: str, str_params: List[str]):
-
     m = importlib.import_module(module_name)
     c = getattr(m, class_name)
     obj = c.from_str(*str_params)
@@ -39,53 +44,25 @@ def get_manifold_dict(inputs: Dict[str, Any]) -> Dict[str, Any]:
             new_dict[key] = construct_manifold_obj(name)
     new_params = unflatten_dict(new_dict)
 
-    if isinstance(inputs, flax.core.FrozenDict):
+    if isinstance(inputs, FrozenDict):
         return FrozenDict(new_params)
     else:
         return new_params
 
-from flax.struct import PyTreeNode, field
-from flax.core import FrozenDict
-from rieoptax.core import RiemannianGradientTransformation
-from typing import Optional, Any, Callable
-from jax import tree_util 
-OptState = Any
 
-class RtxTrainState(PyTreeNode):
-  
-    step: int
-    apply_fn: Callable = field(pytree_node=False)
-    params: FrozenDict[str, Any]
-    rtx: RiemannianGradientTransformation = field(pytree_node=False)
-    opt_state: OptState
-    manifold_dict : FrozenDict[str, Any] = field(pytree_node=False)
-    #use_exp : bool = True
+def rgrad_from_egrad(
+    params: FrozenDict[str, Any],
+    egrads: FrozenDict[str, Any],
+    manifold_dict: FrozenDict[str, Any],
+):
+    rgrads = tree_util.tree_map(
+        lambda param, egrad, manifold: manifold.egrad_to_rgrad(param, egrad),
+        params,
+        egrads,
+        manifold_dict,
+    )
+    return rgrads
 
-    def apply_gradients(self, *, egrads, **kwargs):
-        rgrads = rgrad_from_egrad(self.params,egrads,self.manifold_dict)
-        updates, new_opt_state = self.rtx.update(rgrads, self.opt_state, self.params)
-        new_params = apply_updates(self.params, updates, self.manifold_dict)
-        return self.replace(
-            step=self.step + 1,
-            params=new_params,
-            opt_state=new_opt_state,
-            **kwargs,
-        )
-
-    @classmethod
-    def create(cls, *, apply_fn, params, rtx, **kwargs):
-        """Creates a new instance with `step=0` and initialized `opt_state`."""
-        opt_state = rtx.init(params)
-        manifold_dict = get_manifold_dict(params)
-        return cls(
-            step=0,
-            apply_fn=apply_fn,
-            params=params,
-            rtx=rtx,
-            opt_state=opt_state,
-            manifold_dict=manifold_dict,
-            **kwargs,
-        )
 
 class TransformInitFn(Protocol):
     def __call__(self, params):
@@ -105,9 +82,6 @@ class RiemannianGradientTransformation(NamedTuple):
 
 
 class RiemannianEmptyState(NamedTuple):
-  """An empty state for all Riemannian gradient transformations."""
+    """An empty state for all Riemannian gradient transformations."""
 
-  manifold_dict: FrozenDict[str, Any]
-
-
-
+    manifold_dict: FrozenDict[str, Any]
