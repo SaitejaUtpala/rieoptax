@@ -242,6 +242,11 @@ class SPDAffineInvariant(SPDManifold):
         self.m = m
         super().__init__()
 
+    def retr(self, bpt: Array, tv: Array) -> Array:
+        raise NotImplementedError(
+            "Retraction is not implemented. Use Exponential Map instead"
+        )
+
     def exp(self, bpt: Array, tv: Array) -> Array:
         """Riemannian Exponential map.
 
@@ -318,7 +323,6 @@ class SPDAffineInvariant(SPDManifold):
         return dist
 
     def egrad_to_rgrad(self, egrad: Array, bpt: Array) -> Array:
-
         return bpt @ egrad @ bpt.T
 
 
@@ -462,7 +466,7 @@ class SPDBuresWasserstein(SPDManifold):
         return jnp.trace(pt_a) + jnp.trace(pt_b) - 2 * jnp.trace(prod)
 
     def egrad_to_rgrad(self, bpt: Array, egrad: Array) -> float:
-        return 4 * self.symmetrize(egrad @ bpt)
+        return 4 * self.symmetrize(egrad.value @ bpt.value)
 
 
 class SPDGeneralizedBuresWasserstein(SPDManifold):
