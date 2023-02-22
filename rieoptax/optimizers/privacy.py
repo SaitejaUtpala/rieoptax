@@ -2,7 +2,7 @@ import imp
 from typing import NamedTuple
 
 import jax
-from rieoptax.core import RiemannianGradientTransformation
+from rieoptax.optimizers.base import RiemannianGradientTransformation
 from jax import numpy as jnp
 
 

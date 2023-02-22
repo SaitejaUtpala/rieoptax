@@ -2,7 +2,7 @@ import functools
 from typing import Any, Callable, NamedTuple, Optional
 
 import jax
-from rieoptax.base import (
+from rieoptax.optimizers.base import (
     RiemannianEmptyState,
     RiemannianGradientTransformation,
 )
