@@ -1,4 +1,4 @@
-from rieoptax.core import RiemannianGradientTransformation
+from rieoptax.optimizers.base import RiemannianGradientTransformation
 
 from rieoptax.optimizers.combine import chain
 from rieoptax.optimizers.privacy import differentially_private_aggregate
