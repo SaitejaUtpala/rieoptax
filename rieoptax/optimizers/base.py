@@ -52,6 +52,7 @@ def get_product_manifold(
 def construct_manifold_obj(param_name: str):
     if "@" not in param_name:
         return Euclidean()
+    
     regex = r"\b[\w,\-\s.]+\b"
     matches = re.findall(regex, param_name)
     print("b", matches)

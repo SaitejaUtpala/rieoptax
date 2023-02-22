@@ -10,6 +10,9 @@ class NFoldManifold():
         self.manifold = manifold
         self.N = N 
 
+    def __str__(self):
+        return f"nfold.NFoldManifold({str(self.manifold)}, {self.N})"
+
     @partial(jit, static_argnums=(0,))
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
         """Inner product between two tangent vectors at a point on manifold.
