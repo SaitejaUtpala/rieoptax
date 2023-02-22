@@ -44,7 +44,6 @@ def get_product_manifold(
 ):
     m = importlib.import_module(module_name_base + nfold_module_name)
     c = getattr(m, nfold_class_name)
-    print(manifold_obj)
     product_manfiold_obj = c(manifold_obj, n)
     return product_manfiold_obj
 
@@ -55,7 +54,6 @@ def construct_manifold_obj(param_name: str):
     
     regex = r"\b[\w,\-\s.]+\b"
     matches = re.findall(regex, param_name)
-    print("b", matches)
     if len(matches) == 7:
         # nfold manifold case
         nfold_module_name, nfold_class_name, nfold_n = (
