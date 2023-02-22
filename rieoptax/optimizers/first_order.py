@@ -5,9 +5,9 @@ from rieoptax.optimizers.privacy import differentially_private_aggregate
 from rieoptax.optimizers.transforms import scale_by_learning_rate #, scale_by_radam
 
 
-# def rsgd(learning_rate: float) -> RiemannianGradientTransformation:
-#     """Riemannian (stochastic) gradient descent."""
-#     return scale_by_learning_rate(learning_rate)
+def rsgd(learning_rate: float) -> RiemannianGradientTransformation:
+    """Riemannian (stochastic) gradient descent."""
+    return scale_by_learning_rate(learning_rate)
 
 # def radam(
 #     learning_rate: float,
