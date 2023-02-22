@@ -61,7 +61,7 @@ class PoincareBall(Hyperbolic):
         self.out_radii = out_radii
 
     def __str__(self) -> str:
-        return f"hyperbolic@PoincareBall({self.m},{self.curv})"
+        return f"hyperbolic#PoincareBall({self.m},{self.curv})"
 
     @classmethod
     def from_str(cls, m_str: str, curv_str: str):
@@ -381,6 +381,9 @@ class LorentzHyperboloid(Hyperbolic):
         self.m = m
         self.curv = curv
         super().__init__()
+
+    def __str__(self) -> str:
+        return f"hyperbolic#LorentzHyperboloid({self.m},{self.curv})"
 
     def lorentz_inp(self, x, y):
         lip = jnp.inner(x, y) - 2 * x[0] * y[0]

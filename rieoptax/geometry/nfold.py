@@ -11,7 +11,7 @@ class NFoldManifold():
         self.N = N 
 
     def __str__(self):
-        return f"nfold.NFoldManifold({str(self.manifold)}, {self.N})"
+        return f"nfold#NFoldManifold({str(self.manifold)}, {self.N})"
 
     @partial(jit, static_argnums=(0,))
     def inp(self, bpt: Array, tv_a: Array, tv_b: Array) -> Array:
