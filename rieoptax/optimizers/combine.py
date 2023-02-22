@@ -1,4 +1,4 @@
-from rieoptax.core import RiemannianGradientTransformation
+from rieoptax.optimizers.base import RiemannianGradientTransformation
 
 
 def chain(*args):
