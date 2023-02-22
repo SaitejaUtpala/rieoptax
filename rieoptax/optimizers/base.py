@@ -93,5 +93,5 @@ class RiemannianGradientTransformation(NamedTuple):
 
 class RiemannianEmptyState(NamedTuple):
     """An empty state for all Riemannian gradient transformations."""
-
+    
     manifold_dict: FrozenDict[str, Any]
