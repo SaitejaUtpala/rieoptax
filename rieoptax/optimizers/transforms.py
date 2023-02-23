@@ -28,7 +28,7 @@ def scale(step_size):
 
     def update_fn(updates, state, params=None):
         del params
-        updates = step_size * updates.value
+        updates = step_size * updates
         return updates, state
 
     return RiemannianGradientTransformation(init_fn, update_fn)
