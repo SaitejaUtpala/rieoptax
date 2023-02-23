@@ -22,13 +22,13 @@ ScaleState = EmptyState
 def scale(step_size):
     """Scale updates by some fixed scalar `step_size`."""
 
-    def init_fn(params, manifold_dict=None):
-        del params
+    def init_fn(params, manifolds=None):
+        del params, manifolds
         return ScaleState()
 
-    def update_fn(updates, state, params=None):
-        del params
-        updates = step_size * updates
+    def update_fn(updates, state, params=None, manifolds=None):
+        del params, manifolds
+        updates = tree_util.tree_map(lambda g: step_size * g, updates)
         return updates, state
 
     return RiemannianGradientTransformation(init_fn, update_fn)

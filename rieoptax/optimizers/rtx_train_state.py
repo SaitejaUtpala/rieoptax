@@ -18,13 +18,14 @@ class RtxTrainState(PyTreeNode):
     rtx: RiemannianGradientTransformation = field(pytree_node=False)
     opt_state: OptState
     manifold_dict: FrozenDict[str, Any] = field(pytree_node=False)
-    update_fn: str = "exp"
+    proj_fn: str = field(pytree_node=False)
+    
 
     def apply_gradients(self, *, egrads, **kwargs):
         rgrads = rgrad_from_egrad(self.params, egrads, self.manifold_dict)
         updates, new_opt_state = self.rtx.update(rgrads, self.opt_state, self.params) 
         new_params = apply_updates(
-            self.params, updates, self.manifold_dict, self.update_fn
+            self.params, updates, self.manifold_dict, self.proj_fn
         )
         return self.replace(
             step=self.step + 1,
@@ -34,10 +35,11 @@ class RtxTrainState(PyTreeNode):
         )
 
     @classmethod
-    def create(cls, *, apply_fn, params, rtx, **kwargs):
+    def create(cls, *, apply_fn, proj_fn, params, rtx, **kwargs):
         """Creates a new instance with `step=0` and initialized `opt_state`."""
         opt_state = rtx.init(params)
         manifold_dict = get_manifold_dict(params)
+        
         return cls(
             step=0,
             apply_fn=apply_fn,
@@ -45,5 +47,6 @@ class RtxTrainState(PyTreeNode):
             rtx=rtx,
             opt_state=opt_state,
             manifold_dict=manifold_dict,
+            proj_fn = proj_fn,
             **kwargs,
         )
